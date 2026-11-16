@@ -1,0 +1,108 @@
+﻿RESUMEN DEL PROYECTO
+====================
+Ruta: C:\Users\Mauricio\Desktop\RETO MINERIA DE DATOS
+Total de carpetas: 2820
+Total de archivos: 22514
+Tamaño total: 426.69 MB
+
+ARCHIVOS POR EXTENSION
+======================
+.pyi: 5968 archivos
+.py: 5818 archivos
+.pyc: 5817 archivos
+: 1216 archivos
+.dat: 1086 archivos
+.js: 865 archivos
+.json: 270 archivos
+.txt: 156 archivos
+.woff2: 112 archivos
+.pyd: 102 archivos
+.typed: 82 archivos
+.orig: 81 archivos
+.woff: 77 archivos
+.lib: 67 archivos
+.f90: 62 archivos
+.afm: 61 archivos
+.exe: 55 archivos
+.ttf: 49 archivos
+.h: 42 archivos
+.png: 36 archivos
+.csv: 36 archivos
+.svg: 32 archivos
+.j2: 32 archivos
+.html: 31 archivos
+.mplstyle: 31 archivos
+.md: 28 archivos
+.f: 25 archivos
+.css: 21 archivos
+.c: 16 archivos
+.pxd: 15 archivos
+.pdf: 12 archivos
+.rst: 10 archivos
+.hpp: 10 archivos
+.tpl: 10 archivos
+.dll: 9 archivos
+.eot: 9 archivos
+.pyf: 8 archivos
+.ico: 8 archivos
+.toml: 8 archivos
+.cfg: 8 archivos
+.pyx: 7 archivos
+.yml: 7 archivos
+.pdb: 6 archivos
+.cpp: 6 archivos
+.npy: 6 archivos
+.lock: 6 archivos
+.lark: 5 archivos
+.npz: 5 archivos
+.gz: 5 archivos
+.gitignore: 5 archivos
+.tab: 4 archivos
+.map: 4 archivos
+.yaml: 4 archivos
+.build: 3 archivos
+.BSD: 3 archivos
+.bat: 3 archivos
+.APACHE: 3 archivos
+.po: 3 archivos
+.sh: 3 archivos
+.in: 3 archivos
+.desktop: 2 archivos
+.f2py_f2cmap: 2 archivos
+.pem: 2 archivos
+.jupyterlab-workspace: 2 archivos
+.docx: 2 archivos
+.1: 2 archivos
+.pot: 2 archivos
+.bz2: 1 archivos
+.key: 1 archivos
+.xml: 1 archivos
+.crt: 1 archivos
+.mo: 1 archivos
+.python: 1 archivos
+.ipynb: 1 archivos
+.ps1: 1 archivos
+.xlsx: 1 archivos
+.zi: 1 archivos
+.pxi: 1 archivos
+.fish: 1 archivos
+.cff: 1 archivos
+.SHA256SUM: 1 archivos
+.gitattributes: 1 archivos
+.inc: 1 archivos
+.jpg: 1 archivos
+.unicode: 1 archivos
+.xrc: 1 archivos
+.lua: 1 archivos
+.f95: 1 archivos
+.fits: 1 archivos
+.cmd: 1 archivos
+.external: 1 archivos
+.pkl: 1 archivos
+.template: 1 archivos
+.ini: 1 archivos
+.pc: 1 archivos
+
+CARPETAS PRINCIPALES
+====================
+radar-layer2: 22512 archivos

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radar de Layer 2 · MATIC vs. mercado L2</title>
+<meta name="description" content="Demostración interactiva del reto Radar de Layer 2: beta de MATIC frente al índice L2, validación a ciegas, escenario y alertas.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23111827'/%3E%3Cpath d='M7 22 L14 15 L18 18 L25 10' stroke='%23fff' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <p class="kicker">Minería de Datos · Reto</p>
+    <h1>Radar de Layer 2</h1>
+    <p class="lead">¿Cuánto se mueve MATIC cuando se mueve el mercado L2? Cada número de esta página se calcula en vivo con JavaScript a partir de los 120 días del dataset, y coincide con el notebook de Python y la hoja de Excel.</p>
+  </div>
+</header>
+<nav class="tabs" role="tablist" aria-label="Pasos del reto"><div class="wrap" id="nav"></div></nav>
+<main id="main" class="wrap">
+
+<!-- ================= INICIO ================= -->
+<section id="inicio" data-label="Inicio">
+  <h2>La misión</h2>
+  <p class="obj">Polygon (MATIC) es una criptomoneda de Layer 2. Su precio parece moverse junto con el mercado L2. La tarea: <b>medir cuánto</b> y decidir si esa relación sirve para algo útil.</p>
+  <div class="grid3" id="kpisInicio"></div>
+  <h3>El camino en 5 pasos</h3>
+  <div class="card">
+    <ol class="steps">
+      <li><b>Entender y limpiar</b>: forma, tipos, nulos, duplicados y fechas.</li>
+      <li><b>Explorar</b>: gráfico del precio, dispersión de retornos y correlación.</li>
+      <li><b>Medir la beta</b>: recta <code>ret_matic = alpha + beta · ret_indice_l2</code> y R².</li>
+      <li><b>Validar a ciegas</b>: beta con 90 días, error (RMSE) en los 30 restantes y comparación con "predecir 0".</li>
+      <li><b>Usarlo</b>: escenario (L2 cae 10 %) y alertas (días con |residuo| &gt; 2σ). Bonus: agregar BTC.</li>
+    </ol>
+  </div>
+  <div class="note"><b>Ojo con las unidades:</b> los retornos vienen en <b>decimal</b>. 0.0189 = +1,89 % y −0.05 = −5 %. Cuando se habla de "1 %" en una fórmula se usa 0.01.</div>
+  <h3>Glosario rápido</h3>
+  <div class="card"><table>
+    <tr><th>Término</th><th style="text-align:left">Significado</th></tr>
+    <tr><td>Retorno</td><td style="text-align:left">Cambio del precio de un día al siguiente, en decimal. Aquí es logarítmico: ln(precio_hoy / precio_ayer).</td></tr>
+    <tr><td>Correlación</td><td style="text-align:left">Número entre −1 y 1: qué tanto se mueven juntas dos series. No dice <i>cuánto</i> se mueve una por la otra.</td></tr>
+    <tr><td>Beta</td><td style="text-align:left">Pendiente de la recta: cuánto cambia MATIC, en promedio, por cada unidad que cambia L2.</td></tr>
+    <tr><td>Alpha</td><td style="text-align:left">Intercepto: retorno promedio de MATIC cuando L2 no se mueve.</td></tr>
+    <tr><td>R²</td><td style="text-align:left">Fracción (0 a 1) del movimiento de MATIC que explica el modelo.</td></tr>
+    <tr><td>Residuo</td><td style="text-align:left">Lo que el modelo no explica: retorno real − retorno estimado.</td></tr>
+    <tr><td>Línea base</td><td style="text-align:left">Predicción trivial (siempre 0) a la que el modelo debe ganarle.</td></tr>
+    <tr><td>RMSE</td><td style="text-align:left">Error típico: raíz del promedio de los errores al cuadrado. Menor es mejor.</td></tr>
+  </table></div>
+</section>
+
+<!-- ================= PASO 1 ================= -->
+<section id="paso1" data-label="1 · Limpiar">
+  <h2>Paso 1. Entender y limpiar</h2>
+  <p class="obj">Objetivo: asegurar que los datos están completos y bien tipados antes de calcular nada.</p>
+  <div class="grid2">
+    <div class="card"><h4>Revisiones (calculadas ahora)</h4><div id="checks"></div></div>
+    <div class="card"><h4>Cómo se hace</h4>
+      <div class="tabs2" data-for="code1"><button class="on" data-k="py">Python</button><button data-k="xl">Excel</button></div>
+      <pre id="code1" data-py='df = pd.read_csv("dataset_reto_l2.csv", parse_dates=["fecha"])
+print(df.shape)                    <span class="c"># (120, 6)</span>
+print(df.dtypes)
+print(df.isna().sum())             <span class="c"># nulos por columna</span>
+print("Duplicados:", df.duplicated().sum())
+print(df["fecha"].diff().value_counts())  <span class="c"># 1 days: 119</span>
+print(df.describe())' data-xl='<span class="k">Filas con datos</span>   =CONTARA(A2:A121)
+<span class="k">Celdas vacías</span>     =CONTAR.BLANCO(A2:F121)
+<span class="k">Duplicados</span>        =CONTAR.SI($A$2:$A$121;A2)  <span class="c">→ buscar &gt; 1</span>
+<span class="k">Mín / máx / media</span> =MIN(C2:C121)  =MAX(C2:C121)  =PROMEDIO(C2:C121)'></pre>
+    </div>
+  </div>
+  <h3>El valor llamativo de la primera fila</h3>
+  <div class="grid2">
+    <div class="card">
+      <p style="margin-top:0">El 2023-03-01 <code>ret_indice_l2</code> vale <b>0.0 exacto</b>. Es el <b>único</b> cero exacto de los 120 días y es el primer día (no hay día anterior para calcular el retorno): probablemente un <b>relleno</b>.</p>
+      <div class="ctrl"><label><input type="checkbox" id="dropFirst"> Quitar la fila 1 y recalcular</label></div>
+      <div id="dropRes"></div>
+    </div>
+    <div class="answer"><b class="q">Decisión</b><b>La dejo.</b> Un 0 es un valor posible y neutro, quitarla mueve la beta solo en la tercera cifra decimal (pruébalo con la casilla), y la guía trabaja con 120 filas (rangos 2:121 y corte 90/30). Queda anotado como observación.</div>
+  </div>
+  <h3>Una frase por columna</h3>
+  <div class="card"><table id="colTable"></table></div>
+  <h3>Vista de los datos</h3>
+  <div class="scroll"><table id="rawTable"></table></div>
+</section>
+
+<!-- ================= PASO 2 ================= -->
+<section id="paso2" data-label="2 · Explorar">
+  <h2>Paso 2. Explorar</h2>
+  <p class="obj">Objetivo: ver con los ojos la relación antes de medirla. Pasa el cursor por los gráficos.</p>
+  <div class="card"><div class="chart" id="chPrice"></div></div>
+  <div class="grid2" style="margin-top:18px">
+    <div class="card"><div class="chart" id="chScatter"></div></div>
+    <div>
+      <div class="card kpi"><span class="l">Correlación entre ret_indice_l2 y ret_matic</span><span class="v" id="corrV"></span><span class="l">Entre −1 y 1, y positiva ✔</span></div>
+      <div class="card" style="margin-top:14px">
+        <div class="tabs2" data-for="code2"><button class="on" data-k="py">Python</button><button data-k="xl">Excel</button></div>
+        <pre id="code2" data-py='x = df["ret_indice_l2"]   <span class="c"># eje X: mercado L2</span>
+y = df["ret_matic"]       <span class="c"># eje Y: MATIC</span>
+ax.scatter(x, y, alpha=0.6)
+corr = x.corr(y)' data-xl='Dispersión: seleccionar D y C (X primero) → Insertar → Dispersión
+<span class="k">Correlación</span> =COEF.DE.CORREL(D2:D121;C2:C121)'></pre>
+      </div>
+      <div class="answer"><b class="q">¿Débil, moderada o fuerte?</b><span id="ans2"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PASO 3 ================= -->
+<section id="paso3" data-label="3 · Beta">
+  <h2>Paso 3. Medir la beta</h2>
+  <p class="obj">Objetivo: convertir "se mueven juntos" en un número. <b>Juego:</b> mueve la recta con los controles e intenta que el error (suma de residuos²) sea lo más pequeño posible. Después pulsa "Mínimos cuadrados".</p>
+  <div class="grid2">
+    <div class="card"><div class="chart" id="chFit"></div></div>
+    <div>
+      <div class="card">
+        <div class="ctrl"><label for="bS">beta</label><input type="range" id="bS" min="-0.5" max="2" step="0.005" value="0.2"><output id="bO"></output></div>
+        <div class="ctrl"><label for="aS">alpha</label><input type="range" id="aS" min="-0.01" max="0.01" step="0.0001" value="0.004"><output id="aO"></output></div>
+        <div class="ctrl"><label><input type="checkbox" id="showRes" checked> Ver residuos</label></div>
+        <div class="ctrl"><button class="btn" id="olsBtn">Mínimos cuadrados</button><button class="btn ghost" id="rstBtn">Reiniciar</button></div>
+        <div class="grid2" style="gap:10px">
+          <div class="kpi"><span class="l">Tu error (Σ residuo²)</span><span class="v" id="sseV" style="font-size:24px"></span></div>
+          <div class="kpi"><span class="l">Mínimo posible</span><span class="v" id="sseMin" style="font-size:24px"></span></div>
+        </div>
+        <div id="sseBar" style="height:8px;background:var(--grid);border-radius:4px;margin-top:8px;overflow:hidden"><div style="height:100%;background:var(--s2);width:0"></div></div>
+      </div>
+      <div class="grid3" style="margin-top:14px" id="kpis3"></div>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card">
+      <div class="tabs2" data-for="code3"><button class="on" data-k="py">Python</button><button data-k="xl">Excel</button></div>
+      <pre id="code3" data-py='<span class="c"># polyfit devuelve primero la PENDIENTE (beta) y luego el INTERCEPTO (alpha)</span>
+beta, alpha = np.polyfit(x, y, 1)    <span class="c"># X = L2, Y = MATIC</span>
+r2 = corr ** 2' data-xl='<span class="k">L1 alpha</span> =INTERSECCION.EJE(C2:C121;D2:D121)
+<span class="k">L2 beta </span> =PENDIENTE(C2:C121;D2:D121)   <span class="c">← primero Y, luego X</span>
+<span class="k">L3 corr </span> =COEF.DE.CORREL(D2:D121;C2:C121)
+<span class="k">L4 R²   </span> =COEFICIENTE.R2(C2:C121;D2:D121)'></pre>
+      <div class="note alert" style="margin-bottom:0"><b>Error común:</b> invertir X e Y. <button class="btn ghost" id="invBtn" style="padding:3px 10px;font-size:13px">Ver qué pasa si los invierto</button> <span id="invRes"></span></div>
+    </div>
+    <div>
+      <div class="answer"><b class="q">¿Cuánto se mueve MATIC por cada 1 % del mercado L2?</b><span id="ans3a"></span></div>
+      <div class="answer"><b class="q">¿Qué dice el R² sobre lo que NO explica L2?</b><span id="ans3b"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PASO 4 ================= -->
+<section id="paso4" data-label="4 · Validar">
+  <h2>Paso 4. Validar a ciegas</h2>
+  <p class="obj">Objetivo: comprobar si la beta funciona con datos que el modelo <b>nunca vio</b>. Entrenamiento = primeros 90 días, prueba = últimos 30.</p>
+  <div class="card"><div class="chart" id="chSplit"></div></div>
+  <div class="grid3" style="margin-top:14px" id="kpis4"></div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card"><div class="chart" id="chTest"></div></div>
+    <div>
+      <div class="card">
+        <div class="tabs2" data-for="code4"><button class="on" data-k="py">Python</button><button data-k="xl">Excel</button></div>
+        <pre id="code4" data-py='train = df.iloc[:90]   <span class="c"># días 1-90</span>
+test  = df.iloc[90:]   <span class="c"># días 91-120</span>
+beta_tr, alpha_tr = np.polyfit(train["ret_indice_l2"], train["ret_matic"], 1)
+pred = alpha_tr + beta_tr * test["ret_indice_l2"]
+err_modelo = rmse(test["ret_matic"], pred)
+err_base   = rmse(test["ret_matic"], 0)' data-xl='<span class="k">L6</span>  =INTERSECCION.EJE(C2:C91;D2:D91)
+<span class="k">L7</span>  =PENDIENTE(C2:C91;D2:D91)
+<span class="k">G92</span> =$L$6+$L$7*D92      <span class="c">(copiar hasta G121)</span>
+<span class="k">H92</span> =(C92-G92)^2        <span class="c">(error² modelo)</span>
+<span class="k">I92</span> =C92^2             <span class="c">(error² línea base)</span>
+<span class="k">L9</span>  =RAIZ(PROMEDIO(H92:H121))
+<span class="k">L10</span> =RAIZ(PROMEDIO(I92:I121))'></pre>
+      </div>
+      <div class="note alert"><b>Error común: "mirar el examen antes".</b> <label><input type="checkbox" id="leak"> Calcular la beta con los 120 días (trampa)</label><div id="leakRes" style="margin-top:6px"></div></div>
+    </div>
+  </div>
+  <h3>¿Qué tan grande es la mejora con solo 30 días? (remuestreo)</h3>
+  <div class="grid2">
+    <div class="card"><div class="chart" id="chBoot"></div><div class="ctrl"><button class="btn" id="bootBtn">Remuestrear 5000 veces</button></div></div>
+    <div class="answer"><b class="q">¿El modelo le gana a la línea base? ¿Es grande la diferencia?</b><span id="ans4"></span></div>
+  </div>
+</section>
+
+<!-- ================= PASO 5 ================= -->
+<section id="paso5" data-label="5 · Usarlo">
+  <h2>Paso 5. Usarlo</h2>
+  <p class="obj">Con la beta del paso 3 (120 días). Hicimos <b>las dos opciones</b>.</p>
+  <h3>Opción A: Escenario</h3>
+  <div class="grid2">
+    <div class="card">
+      <div class="ctrl"><label for="shS">Movimiento del mercado L2</label><input type="range" id="shS" min="-0.15" max="0.15" step="0.005" value="-0.10"><output id="shO"></output></div>
+      <div class="kpi" style="margin:6px 0 10px"><span class="l">MATIC según el modelo (beta × shock)</span><span class="v" id="effV"></span></div>
+      <div id="extrap"></div>
+      <pre>shock  = -0.10
+efecto = beta * shock     <span class="c"># Excel: L14 =L2*-0,10</span></pre>
+    </div>
+    <div class="card"><div class="chart" id="chHist"></div></div>
+  </div>
+  <h3>Opción B: Alertas</h3>
+  <p class="obj" style="margin-bottom:8px">Residuo = ret_matic − beta × ret_indice_l2 = la parte del movimiento de MATIC que el mercado L2 <b>no</b> explica.</p>
+  <div class="card">
+    <div class="ctrl"><label for="kS">Umbral</label><input type="range" id="kS" min="1.5" max="3" step="0.1" value="2"><output id="kO"></output><span id="alCount" class="tag"></span></div>
+    <div class="chart" id="chRes"></div>
+  </div>
+  <div class="card" style="margin-top:14px"><div class="chart" id="chPriceAl"></div></div>
+  <div class="grid2" style="margin-top:14px">
+      <div class="card"><h4>Días en alerta</h4><table id="alTable"></table></div>
+      <div class="card"><pre>df["residuo"] = df["ret_matic"] - beta * df["ret_indice_l2"]
+sigma   = df["residuo"].std()
+alertas = df[df["residuo"].abs() &gt; 2 * sigma]
+<span class="c"># Excel: M2 =C2-$L$2*D2 · L12 =DESVEST.M(M2:M121)</span>
+<span class="c">#        N2 =SI(ABS(M2)&gt;2*$L$12;"ALERTA";"")</span>
+<span class="c">#        L13 =CONTAR.SI(N2:N121;"ALERTA")</span></pre></div>
+  </div>
+  <div class="answer"><b class="q">Los dos movimientos extremos propios de MATIC</b><span id="ans5"></span></div>
+</section>
+
+<!-- ================= BONUS ================= -->
+<section id="bonus" data-label="Bonus · BTC">
+  <h2>Bonus: segundo factor (ret_btc)</h2>
+  <p class="obj">Modelo: <code>ret_matic = alpha + b1 · ret_indice_l2 + b2 · ret_btc</code>. ¿Mejora el ajuste? ¿Qué pasa cuando dos factores se parecen tanto?</p>
+  <div class="grid2">
+    <div class="card"><h4>Comparación de modelos</h4><table id="bonusTable"></table>
+      <pre style="margin-top:12px"><span class="c"># Excel (matricial): coeficientes en orden inverso → b2, b1, alpha</span>
+=ESTIMACION.LINEAL(C2:C121;D2:E121;VERDADERO;VERDADERO)</pre></div>
+    <div class="card"><div class="chart" id="chLB"></div></div>
+  </div>
+  <div class="answer"><b class="q">Conclusión</b><span id="ansB"></span></div>
+</section>
+
+<!-- ================= RESUMEN ================= -->
+<section id="resumen" data-label="Resumen">
+  <h2>Resumen del análisis</h2>
+  <p class="obj">Plantilla de la guía, completada con nuestros números.</p>
+  <div class="card"><table id="sumTable"></table></div>
+  <h3>Errores comunes: revisados</h3>
+  <div class="card" id="errList"></div>
+  <h3>Rúbrica (10 puntos): dónde se cumple cada criterio</h3>
+  <div class="card"><table>
+    <tr><th>Criterio</th><th>Pts</th><th style="text-align:left">Dónde está</th></tr>
+    <tr><td>Datos entendidos y limpios</td><td>2</td><td style="text-align:left">Paso 1: forma, tipos, nulos, duplicados, fechas, fila 1 y una frase por columna.</td></tr>
+    <tr><td>Gráficos claros con títulos y ejes</td><td>2</td><td style="text-align:left">Paso 2–3: precio y dispersión con recta, con título, ejes y unidades.</td></tr>
+    <tr><td>Beta calculada e interpretada</td><td>2</td><td style="text-align:left">Paso 3: X/Y correctos, "% de MATIC por cada 1 % de L2" y R².</td></tr>
+    <tr><td>Validación con datos no vistos</td><td>2</td><td style="text-align:left">Paso 4: beta con 90 días, RMSE en 30, comparación con predecir 0 y conclusión honesta.</td></tr>
+    <tr><td>Uso práctico y límites</td><td>2</td><td style="text-align:left">Paso 5 A y B, más una limitación argumentada.</td></tr>
+  </table></div>
+</section>
+</main>
+<footer><div class="wrap"><span>Radar de Layer 2 · Minería de Datos</span><span>Dataset sintético · 120 días (1-mar a 28-jun-2023) · cálculos en el navegador</span></div></footer>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

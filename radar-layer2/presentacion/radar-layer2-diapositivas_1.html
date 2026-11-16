@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Radar de Layer 2 · Diapositivas</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236D3FE0'/%3E%3Cpath d='M7 22 L14 15 L18 18 L25 10' stroke='%23fff' stroke-width='2.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#FAFAF8; --ink:#14141A; --muted:#6B6B76; --soft:#A3A3AD; --line:#E7E6E1; --card:#FFFFFF;
+  --acc:#6D3FE0; --acc-soft:#EFE9FD; --l2:#2F7DD1; --l2-soft:#E6F0FB;
+  --good:#18915A; --good-soft:#E3F4EB; --bad:#D9423A; --bad-soft:#FCE9E7; --warn:#C98A0B; --warn-soft:#FBF1DC;
+  --ease:cubic-bezier(.2,.7,.1,1);
+  --fs-h1:clamp(2rem,5.4vw,4.4rem); --fs-h2:clamp(1.45rem,3.2vw,2.6rem); --fs-big:clamp(3rem,10vw,7.5rem);
+  --fs-body:clamp(.95rem,1.35vw,1.2rem); --fs-small:clamp(.8rem,1.05vw,.95rem);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;font-size:.88em}
+code{background:#F1F0EC;border-radius:6px;padding:.08em .4em}
+b,strong{font-weight:650}
+
+/* ---------- deck ---------- */
+.deck{position:fixed;inset:0;bottom:56px}
+.slide{position:absolute;inset:0;display:flex;overflow-y:auto;overflow-x:hidden;padding:clamp(18px,4.5vw,72px) clamp(18px,6vw,96px);
+  visibility:hidden;opacity:0;transition:opacity .5s var(--ease),visibility 0s .5s;scrollbar-width:thin}
+.slide.active{visibility:visible;opacity:1;transition:opacity .5s var(--ease),visibility 0s}
+.inner{margin:auto;width:100%;max-width:1180px}
+.kicker{font-size:var(--fs-small);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin-bottom:.9rem;display:flex;align-items:center;gap:.6rem}
+.kicker .pill{background:var(--acc-soft);padding:.25em .7em;border-radius:99px;letter-spacing:.06em}
+h1{font-size:var(--fs-h1);line-height:1.02;letter-spacing:-.035em;font-weight:800}
+h2{font-size:var(--fs-h2);line-height:1.1;letter-spacing:-.025em;font-weight:750;margin-bottom:1rem;max-width:22ch}
+h2.wide{max-width:none}
+h3{font-size:clamp(1rem,1.5vw,1.25rem);font-weight:650;margin-bottom:.4rem;letter-spacing:-.01em}
+p{font-size:var(--fs-body);line-height:1.55;color:#33333B}
+.lead{font-size:clamp(1.05rem,1.7vw,1.4rem);color:var(--muted);max-width:52ch;line-height:1.5}
+.muted{color:var(--muted)} .small{font-size:var(--fs-small)}
+.acc{color:var(--acc)} .l2c{color:var(--l2)} .goodc{color:var(--good)} .badc{color:var(--bad)}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,3vw,48px);align-items:center}
+.g2.r{grid-template-columns:1.25fr 1fr}
+.g2.l{grid-template-columns:1fr 1.35fr}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,1.8vw,24px)}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(10px,1.5vw,20px)}
+.stack>*+*{margin-top:1rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:clamp(14px,1.8vw,26px)}
+.card.flat{background:transparent}
+.card .num{font-size:clamp(1.8rem,3.6vw,3rem);font-weight:800;letter-spacing:-.03em;line-height:1}
+.card .lbl{font-size:var(--fs-small);color:var(--muted);margin-top:.4rem;line-height:1.4}
+.simple{border-left:3px solid var(--acc);background:var(--acc-soft);border-radius:0 14px 14px 0;padding:.9rem 1.1rem;margin-top:1.2rem}
+.simple p{color:#2B2340;font-size:var(--fs-body)}
+.simple .t{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin-bottom:.25rem}
+.big{font-size:var(--fs-big);font-weight:800;letter-spacing:-.05em;line-height:.95}
+.tag{display:inline-block;font-size:.72rem;font-weight:650;letter-spacing:.06em;text-transform:uppercase;padding:.3em .7em;border-radius:99px;background:#F1F0EC;color:var(--muted)}
+.tag.good{background:var(--good-soft);color:var(--good)} .tag.bad{background:var(--bad-soft);color:var(--bad)} .tag.warn{background:var(--warn-soft);color:var(--warn)} .tag.acc{background:var(--acc-soft);color:var(--acc)}
+ul.clean{list-style:none} ul.clean li{font-size:var(--fs-body);line-height:1.5;padding:.45rem 0 .45rem 1.6rem;position:relative;color:#33333B}
+ul.clean li::before{content:"";position:absolute;left:.25rem;top:1.02em;width:.5rem;height:.5rem;border-radius:50%;background:var(--acc)}
+table{width:100%;border-collapse:collapse;font-size:var(--fs-small)}
+th,td{text-align:left;padding:.6rem .7rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.78em;text-transform:uppercase;letter-spacing:.06em}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-family:Inter,system-ui,sans-serif;fill:var(--muted);font-size:12px}
+.chart .ax{stroke:var(--line);stroke-width:1}
+.chart .grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4}
+.chart .zero{stroke:#C9C8C2;stroke-width:1}
+.chart .ttl{fill:var(--ink);font-weight:600;font-size:12.5px}
+.legend{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;font-size:var(--fs-small);color:var(--muted);margin-top:.5rem}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:.4rem;vertical-align:-1px}
+
+/* ---------- reveal animations ---------- */
+.rv{opacity:0;transform:translateY(18px);transition:opacity .7s var(--ease),transform .7s var(--ease);transition-delay:calc(var(--d,0) * 110ms + 120ms)}
+.rv.fade{transform:none} .rv.left{transform:translateX(-24px)} .rv.zoom{transform:scale(.94)}
+.slide.active .rv{opacity:1;transform:none}
+.dot{opacity:0;transform-box:fill-box;transform-origin:center;animation:pop .45s var(--ease) forwards}
+@keyframes pop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+.grow{transform-box:fill-box;transform-origin:bottom;animation:grow .9s var(--ease) forwards;transform:scaleY(0)}
+@keyframes grow{to{transform:scaleY(1)}}
+.fadein{opacity:0;animation:fi .6s var(--ease) forwards}
+@keyframes fi{to{opacity:1}}
+.bar{height:100%;width:0;border-radius:inherit;transition:width 1.2s var(--ease);transition-delay:.4s}
+.pulse{animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* ---------- cover ---------- */
+.cover .orb{position:absolute;right:-8vw;top:50%;width:min(62vw,720px);aspect-ratio:1;transform:translateY(-50%);pointer-events:none;opacity:.95}
+.cover .inner{position:relative;z-index:1}
+.cover .meta{margin-top:2.2rem;display:grid;gap:.25rem;font-size:var(--fs-small);color:var(--muted)}
+.cover .meta b{color:var(--ink);font-size:1.05em}
+
+/* ---------- steps ---------- */
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(8px,1.2vw,16px);counter-reset:s}
+.step{position:relative;padding:1.1rem 1rem 1.2rem;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.step .n{width:2rem;height:2rem;border-radius:50%;display:grid;place-items:center;background:var(--acc);color:#fff;font-weight:700;font-size:.9rem;margin-bottom:.7rem}
+.step h3{font-size:clamp(.95rem,1.3vw,1.1rem)}
+.step p{font-size:var(--fs-small);color:var(--muted);line-height:1.45}
+
+/* checklist */
+.check{display:flex;gap:.9rem;align-items:flex-start;padding:.75rem 0;border-bottom:1px solid var(--line)}
+.check:last-child{border-bottom:0}
+.check .ic{flex:none;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--good-soft);display:grid;place-items:center}
+.check .ic svg{width:1rem;height:1rem;stroke:var(--good);stroke-width:3;fill:none;stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset .6s var(--ease)}
+.slide.active .check .ic svg{stroke-dashoffset:0;transition-delay:calc(var(--d,0)*110ms + 400ms)}
+.check b{display:block;font-size:var(--fs-body)} .check span{font-size:var(--fs-small);color:var(--muted)}
+
+/* scale -1..1 */
+.scale{position:relative;height:14px;border-radius:99px;background:linear-gradient(90deg,var(--bad-soft),#F1F0EC 50%,var(--acc-soft));margin:2.4rem 0 1.2rem}
+.scale .mk{position:absolute;top:50%;width:22px;height:22px;border-radius:50%;background:var(--acc);border:4px solid #fff;box-shadow:0 2px 10px rgba(109,63,224,.4);transform:translate(-50%,-50%);left:50%;transition:left 1.4s var(--ease) .5s}
+.scale .mk::after{content:attr(data-l);position:absolute;bottom:150%;left:50%;transform:translateX(-50%);font-weight:700;color:var(--acc);font-size:.95rem;white-space:nowrap}
+.scale .ticks{position:absolute;top:22px;left:0;right:0;display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted)}
+.zones{display:flex;justify-content:space-between;font-size:.75rem;color:var(--soft);margin-top:1.6rem}
+
+/* hbars */
+.hb{margin:.9rem 0}
+.hb .top{display:flex;justify-content:space-between;font-size:var(--fs-small);margin-bottom:.35rem}
+.hb .track{height:16px;border-radius:99px;background:#F1F0EC;overflow:hidden}
+
+/* split timeline */
+.split{display:flex;height:64px;border-radius:14px;overflow:hidden;margin:1.4rem 0 .6rem}
+.split>div{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:650;font-size:var(--fs-small);transform-origin:left;transform:scaleX(0);transition:transform 1s var(--ease)}
+.slide.active .split>div{transform:scaleX(1)}
+.slide.active .split>div:nth-child(2){transition-delay:.5s}
+
+/* range diagram */
+.range{position:relative;height:120px;margin:1rem 0}
+.range .axis{position:absolute;left:0;right:0;top:60px;height:2px;background:var(--line)}
+
+/* donut */
+.donut{width:min(260px,60vw);aspect-ratio:1;display:block;margin:auto}
+.donut circle{fill:none;stroke-width:16}
+
+/* bottom bar */
+.bar-ui{position:fixed;left:0;right:0;bottom:0;height:56px;display:flex;align-items:center;gap:12px;padding:0 clamp(12px,3vw,28px);background:rgba(250,250,248,.92);backdrop-filter:blur(8px);border-top:1px solid var(--line);z-index:10}
+.bar-ui .prog{flex:1;height:3px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar-ui .prog i{display:block;height:100%;width:0;background:var(--acc);transition:width .5s var(--ease)}
+.bar-ui button{border:1px solid var(--line);background:#fff;color:var(--ink);height:36px;min-width:36px;padding:0 .7rem;border-radius:10px;font:inherit;font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;transition:background .2s,border-color .2s}
+.bar-ui button:hover{border-color:var(--acc);color:var(--acc)}
+.bar-ui button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.bar-ui .cnt{font-variant-numeric:tabular-nums;font-size:.85rem;color:var(--muted);min-width:4.2rem;text-align:center}
+.bar-ui .ttl{font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:28vw}
+.notes-panel{position:fixed;right:clamp(8px,2vw,24px);bottom:68px;width:min(440px,calc(100vw - 16px));max-height:min(52vh,460px);overflow:auto;background:#14141A;color:#ECECF1;border-radius:16px;padding:1.1rem 1.2rem;box-shadow:0 20px 50px rgba(0,0,0,.25);z-index:11;transform:translateY(12px);opacity:0;pointer-events:none;transition:.3s var(--ease)}
+.notes-panel.open{transform:none;opacity:1;pointer-events:auto}
+.notes-panel h4{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:#A99BF0;margin-bottom:.5rem}
+.notes-panel p,.notes-panel li{font-size:.92rem;line-height:1.55;color:#DADAE2}
+.notes-panel p+p{margin-top:.6rem}
+.notes-panel ul{padding-left:1.1rem;margin-top:.4rem}
+aside.notes{display:none}
+.help{position:fixed;inset:0;background:rgba(20,20,26,.45);display:none;place-items:center;z-index:20}
+.help.open{display:grid}
+.help .box{background:#fff;border-radius:18px;padding:1.4rem 1.6rem;width:min(420px,92vw)}
+.help .row{display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.help kbd{font-family:"JetBrains Mono",monospace;background:#F1F0EC;border-radius:6px;padding:.1em .5em;font-size:.85em}
+
+
+/* ---------- v2 ---------- */
+.agenda{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,1.2vw,14px)}
+.ag{all:unset;cursor:pointer;display:grid;grid-template-columns:auto 1fr;column-gap:.9rem;row-gap:.15rem;align-items:baseline;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:.9rem 1rem;transition:border-color .25s,transform .25s,box-shadow .25s}
+.ag:hover{border-color:var(--acc);box-shadow:0 8px 24px rgba(109,63,224,.12)}
+.ag span{grid-row:span 2;font-family:"JetBrains Mono",monospace;color:var(--acc);font-weight:500;font-size:.9rem}
+.ag b{font-size:clamp(.95rem,1.3vw,1.08rem)} .ag i{font-style:normal;font-size:var(--fs-small);color:var(--muted)}
+.mini .num{font-size:clamp(1.5rem,2.8vw,2.3rem)!important}
+.layers{display:grid;gap:10px;margin-bottom:.4rem}
+.ly{border-radius:16px;padding:1rem 1.1rem;border:1px solid var(--line);background:var(--card)}
+.ly.l2{background:var(--acc-soft);border-color:#D9CCFA} .ly.btc{background:var(--warn-soft);border-color:#F1DDAE}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.7rem}
+.chips b{background:#fff;border:1px solid var(--line);border-radius:10px;padding:.35rem .7rem;font-size:var(--fs-small);font-weight:600}
+.arrow-down{text-align:center;font-size:.8rem;color:var(--muted)}
+.flow{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;position:relative}
+.fl{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:.9rem .8rem;text-align:left}
+.fl:not(:last-child)::after{content:"→";position:absolute;right:-12px;top:1.15rem;color:var(--acc);font-weight:700;z-index:1;font-size:.9rem}
+.fl .ic{width:2.1rem;height:2.1rem;border-radius:10px;background:var(--acc-soft);color:var(--acc);display:grid;place-items:center;font-weight:700;margin-bottom:.6rem}
+.fl b{display:block;font-size:clamp(.88rem,1.1vw,1rem)} .fl span{font-size:.78rem;color:var(--muted);line-height:1.35;display:block;margin-top:.2rem}
+.tools .card h3{margin:.6rem 0 .2rem} .tools .why{margin-top:.5rem;color:#33333B;line-height:1.45}
+.xscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.mono-t td{font-family:"JetBrains Mono",monospace;font-size:.85em;white-space:nowrap}
+td.hl{background:var(--warn-soft);color:var(--warn);font-weight:600;border-radius:4px}
+.xl{margin-top:1rem;border:1px solid #CFD8D3;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.05)}
+.xl-top{display:flex;align-items:center;gap:.5rem;padding:.55rem .9rem;background:#1D6F42;color:#fff;font-size:.85rem}
+.xl-top .muted{color:#CDE6D7}
+.xl-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.45)}
+.xl-fx{display:flex;align-items:center;gap:.7rem;padding:.45rem .8rem;border-bottom:1px solid #E1E6E3;font-size:.85rem;overflow-x:auto;white-space:nowrap}
+.xl-name{border:1px solid #D6DBD8;border-radius:4px;padding:.1rem .6rem;font-family:"JetBrains Mono",monospace;font-size:.8rem}
+.xl-f{font-style:italic;color:var(--muted);font-family:serif}
+.xl-fx code{background:transparent;padding:0}
+table.xl-grid{border-collapse:collapse;font-size:clamp(.7rem,.95vw,.85rem);min-width:760px}
+.xl-grid th,.xl-grid td{border:1px solid #E3E7E5;padding:.32rem .55rem;white-space:nowrap;text-transform:none;letter-spacing:0}
+.xl-grid tr.h th{background:#F3F5F4;text-align:center;color:#5B6660;font-weight:500;font-size:.8em}
+.xl-grid tr th:first-child{background:#F3F5F4;color:#5B6660;font-weight:500;text-align:center;width:2.4rem;font-size:.8em}
+.xl-grid td{font-variant-numeric:tabular-nums;text-align:right}
+.xl-grid td.hd{font-weight:600;text-align:left;background:#FAFBFA}
+.xl-grid td:nth-child(2){text-align:left}
+.xl-grid .gap{background:#FAFAFA;color:var(--soft);text-align:center;min-width:3.5rem}
+.xl-grid td.k{text-align:left;font-weight:600;color:#33333B;background:#FBFAFF}
+.xl-grid td.v{color:var(--acc);font-weight:600;background:#FBFAFF}
+.xl-grid td.sel{outline:2.5px solid #1D6F42;outline-offset:-2px;background:#EAF5EE;color:#1D6F42}
+.xl-grid tr.dots td{text-align:center;color:var(--soft)}
+table.ftab td{padding:.42rem .6rem} table.ftab code{white-space:nowrap}
+ul.clean.g li::before{background:var(--good)} ul.clean.w li::before{background:var(--warn)} ul.clean.r li::before{background:var(--bad)}
+.vdr ul.clean li{font-size:var(--fs-small)}
+.probs .card h3{margin:.6rem 0 .25rem}
+@media (max-width:1100px){.flow{grid-template-columns:repeat(4,1fr)} .fl:nth-child(4)::after{display:none}}
+@media (max-width:860px){.agenda{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.agenda{grid-template-columns:1fr} .flow{grid-template-columns:1fr 1fr} .fl:nth-child(even)::after{display:none}}
+
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  .steps{grid-template-columns:repeat(2,1fr)} .steps .step:last-child{grid-column:span 2}
+  .g4{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:860px){
+  .g2,.g2.r,.g2.l{grid-template-columns:1fr}
+  .g3{grid-template-columns:1fr}
+  .cover .orb{opacity:.18;right:-30vw;width:110vw}
+  .bar-ui .ttl{display:none}
+  h2{max-width:none}
+  .g2.r>.rv.zoom:first-child{order:2}
+  .chart text{font-size:16px}
+  .chart .ttl{font-size:16px}
+}
+@media (max-width:520px){
+  .bar-ui .hide-s{display:none}
+  .steps{grid-template-columns:1fr} .steps .step:last-child{grid-column:auto}
+  th,td{padding:.45rem .4rem}
+}
+@media (max-height:560px) and (min-width:861px){ .slide{padding-top:16px;padding-bottom:16px} }
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important;transition-delay:0s!important;animation-delay:0s!important} }
+@media print{
+  html,body{overflow:visible;height:auto}
+  .deck{position:static} .bar-ui,.notes-panel,.help{display:none!important}
+  .slide{position:relative;visibility:visible;opacity:1;page-break-after:always;min-height:100vh}
+  .rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<main class="deck" id="deck">
+
+<!-- 1 · PORTADA -->
+<section class="slide cover" data-title="Portada">
+  <svg class="orb" viewBox="0 0 600 600" aria-hidden="true" id="orb"></svg>
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">Minería de Datos</span> Reto</p>
+    <h1 class="rv" style="--d:1">Radar de<br>Layer 2</h1>
+    <p class="lead rv" style="--d:2;margin-top:1.2rem">¿Cuánto se mueve <b class="acc">MATIC</b> cuando se mueve el <b class="l2c">mercado L2</b>? ¿Y sirve esa relación para algo útil?</p>
+    <div class="meta rv" style="--d:3">
+      <b>Mauricio Miguel Colque Mamani</b>
+      <span>Ingeniería de Sistemas · Universidad Privada Franz Tamayo</span>
+      <span>La Paz, Bolivia</span>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Buenos días. Voy a presentar el reto “Radar de Layer 2”.</p>
+    <p>La idea es sencilla: tomamos una criptomoneda, MATIC, y queremos saber si su precio sigue al resto del mercado al que pertenece, y en qué medida. Todo lo que voy a mostrar lo calculé con Python y lo comprobé en Excel.</p>
+    <p>Usen las flechas ← → para avanzar. Este panel de notas se abre con la tecla N.</p>
+  </aside>
+</section>
+
+<!-- A · AGENDA -->
+<section class="slide" data-title="¿Por dónde empezamos?">
+  <div class="inner">
+    <p class="kicker rv">Agenda</p>
+    <h2 class="rv wide" style="--d:1">¿Por dónde empezamos?</h2>
+    <p class="rv lead" style="--d:2">El recorrido va de lo general a lo específico: primero qué es y de qué trata, después cómo se hizo y al final qué se encontró.</p>
+    <div class="agenda" style="margin-top:1.6rem">
+      <button class="ag rv" style="--d:3" data-go="¿Qué es esto?"><span>01</span><b>¿Qué es esto?</b><i>Minería de datos y el reto</i></button>
+      <button class="ag rv" style="--d:3" data-go="La pregunta"><span>02</span><b>¿De qué trata?</b><i>La pregunta y los conceptos</i></button>
+      <button class="ag rv" style="--d:4" data-go="¿Cómo se hace?"><span>03</span><b>¿Cómo se hace?</b><i>El proceso de principio a fin</i></button>
+      <button class="ag rv" style="--d:4" data-go="Herramientas"><span>04</span><b>Herramientas</b><i>Qué usé y por qué</i></button>
+      <button class="ag rv" style="--d:5" data-go="Los datos"><span>05</span><b>Los datos y el Excel</b><i>Qué contienen y cómo se ven</i></button>
+      <button class="ag rv" style="--d:5" data-go="Paso 1 · Limpiar"><span>06</span><b>Limpieza y problemas</b><i>Datos faltantes, errores, decisiones</i></button>
+      <button class="ag rv" style="--d:6" data-go="Paso 2 · El precio"><span>07</span><b>Análisis y resultados</b><i>Beta, validación, escenario, alertas</i></button>
+      <button class="ag rv" style="--d:6" data-go="Ventajas y riesgos"><span>08</span><b>Ventajas y riesgos</b><i>Lo bueno, lo malo y lo peligroso</i></button>
+      <button class="ag rv" style="--d:7" data-go="Resumen"><span>09</span><b>Conclusión</b><i>La respuesta en una lámina</i></button>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Antes de entrar a los números, este es el mapa de la presentación.</p>
+    <p>Empiezo explicando qué es la minería de datos y en qué consiste el reto; luego la pregunta que queremos responder; después cómo se hizo, con qué herramientas y con qué datos; qué problemas encontré en los datos; los resultados; y al final ventajas, riesgos y conclusión.</p>
+    <p>Cada punto de esta agenda es clicable: lleva directo a esa sección.</p>
+  </aside>
+</section>
+
+<!-- B · QUÉ ES ESTO -->
+<section class="slide" data-title="¿Qué es esto?">
+  <div class="inner g2">
+    <div>
+      <p class="kicker rv"><span class="pill">01</span> ¿Qué es esto?</p>
+      <h2 class="rv" style="--d:1">Un proyecto de minería de datos</h2>
+      <p class="rv" style="--d:2"><b>Minería de datos</b> es buscar patrones útiles dentro de muchos datos: relaciones, tendencias o casos raros que a simple vista no se notan.</p>
+      <p class="rv" style="--d:3;margin-top:.8rem">Este trabajo es un <b>reto de clase</b>: con una guía de 5 pasos, aplicar ese proceso completo a datos de criptomonedas, de los datos crudos a una conclusión honesta.</p>
+      <div class="simple rv" style="--d:4"><p class="t">En simple</p><p>Es como ser detective: los datos son las pistas y el objetivo es responder una pregunta con pruebas, no con opiniones.</p></div>
+    </div>
+    <div class="stack">
+      <div class="card rv" style="--d:2">
+        <span class="tag acc">El reto</span>
+        <div class="g3 mini" style="margin-top:.9rem">
+          <div><div class="num">90</div><div class="lbl">minutos sugeridos</div></div>
+          <div><div class="num">5</div><div class="lbl">pasos + 1 bonus</div></div>
+          <div><div class="num">10</div><div class="lbl">puntos de evaluación</div></div>
+        </div>
+      </div>
+      <div class="card rv" style="--d:3">
+        <h3>Qué se entrega</h3>
+        <ul class="clean">
+          <li>Un <b>notebook</b> o una <b>hoja de cálculo</b> con los 5 pasos, gráficos y respuestas escritas.</li>
+          <li>Un <b>resumen</b> con la beta, la validación, el uso práctico y una limitación.</li>
+        </ul>
+        <p class="small muted" style="margin-top:.4rem">Yo hice además: script reproducible, Excel con fórmulas, informe, demo web y estas diapositivas.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>¿Qué es esto? Es un proyecto de minería de datos: tomar un conjunto de datos, limpiarlo, explorarlo, construir un modelo, comprobar si funciona y sacar una conclusión útil.</p>
+    <p>Concretamente es el reto “Radar de Layer 2”, pensado para unos 90 minutos y nivel inicial. La guía tiene 5 pasos y un bonus, y se evalúa sobre 10 puntos: datos limpios, gráficos claros, beta bien interpretada, validación honesta y uso práctico con límites.</p>
+    <p>La guía pedía un notebook o una hoja de cálculo y un resumen. Yo hice las dos versiones (Python y Excel) para comprobar que los números coinciden, más un informe, una demo web y esta presentación.</p>
+  </aside>
+</section>
+
+<!-- 2 · LA PREGUNTA -->
+<section class="slide" data-title="La pregunta">
+  <div class="inner g2">
+    <div>
+      <p class="kicker rv"><span class="pill">02</span> ¿De qué trata?</p>
+      <h2 class="rv" style="--d:1">Cuando el mercado sube o baja, ¿MATIC lo sigue?</h2>
+      <p class="rv" style="--d:2">Polygon (MATIC) es una criptomoneda de <b>Layer 2</b>. Su precio parece moverse junto con las demás monedas de su grupo.</p>
+      <p class="rv" style="--d:3;margin-top:.8rem">Mi tarea fue <b>medir cuánto</b> lo sigue y decidir si ese número sirve para algo práctico.</p>
+      <div class="simple rv" style="--d:4"><p class="t">En simple</p><p>Es como un bote en un río: la corriente (el mercado) lo empuja, pero el bote también tiene su propio motor. Queremos saber cuánto empuja la corriente.</p></div>
+    </div>
+    <div class="rv zoom" style="--d:2">
+      <svg class="chart" id="c-intro" viewBox="0 0 520 360"></svg>
+      <div class="legend"><span><i style="background:var(--l2)"></i>Mercado L2 (índice)</span><span><i style="background:var(--acc)"></i>MATIC</span></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>El problema: MATIC es un token Layer 2 y parece que se mueve con el mercado L2. No basta con decir “se parecen”; hay que poner un número.</p>
+    <p>El gráfico muestra los primeros 30 días reales del dataset: en azul cómo se movió el mercado L2 cada día, en morado cómo se movió MATIC. A veces van juntos, a veces no.</p>
+    <p>La analogía del bote: el mercado es la corriente y MATIC tiene su propio motor (noticias, eventos del proyecto). Vamos a medir la fuerza de la corriente.</p>
+  </aside>
+</section>
+
+<!-- 3 · CONCEPTOS -->
+<section class="slide" data-title="Conceptos clave">
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">02</span> Conceptos clave</p>
+    <h2 class="rv wide" style="--d:1">Tres ideas para entender todo lo demás</h2>
+    <div class="g3" style="margin-top:1.6rem">
+      <div class="card rv" style="--d:2">
+        <span class="tag acc">1 · Layer 2</span>
+        <h3 style="margin-top:.8rem">Una “vía rápida”</h3>
+        <p class="small muted">Las redes Layer 2 funcionan encima de una blockchain principal para hacer transacciones más rápidas y baratas. MATIC es una de ellas.</p>
+      </div>
+      <div class="card rv" style="--d:3">
+        <span class="tag acc">2 · Retorno</span>
+        <h3 style="margin-top:.8rem">Cuánto cambió el precio en un día</h3>
+        <p class="small muted">Si ayer valía 1,00 USD y hoy 1,02 USD, el retorno es <b>+2 %</b>. En los datos se escribe en decimal: <code>0.02</code>.</p>
+        <p class="small muted" style="margin-top:.5rem"><code>0.0189</code> = +1,89 % · <code>-0.05</code> = −5 %</p>
+      </div>
+      <div class="card rv" style="--d:4">
+        <span class="tag acc">3 · Índice L2</span>
+        <h3 style="margin-top:.8rem">El “promedio” del grupo</h3>
+        <p class="small muted">Resume cómo se movieron ese día todas las monedas Layer 2 (usa la mediana). Es el “mercado” contra el que comparamos a MATIC.</p>
+      </div>
+    </div>
+    <div class="simple rv" style="--d:5"><p class="t">¿Por qué retornos y no precios?</p><p>Los precios suben o bajan con el tiempo y pueden parecer relacionados aunque no lo estén. Los retornos comparan <b>día contra día</b>, que es lo justo.</p></div>
+  </div>
+  <aside class="notes">
+    <p>Tres conceptos para que todos sigamos la presentación.</p>
+    <ul><li>Layer 2: una capa encima de una blockchain grande (como Ethereum) que hace todo más rápido y barato.</li>
+    <li>Retorno: el cambio porcentual de un día a otro. Ojo: en el archivo viene en decimal, 0.01 es 1 %. Técnicamente es un retorno logarítmico, ln(precio de hoy / precio de ayer), pero para cambios pequeños es casi igual al porcentaje.</li>
+    <li>Índice L2: la mediana de los retornos de varios tokens L2; representa “al mercado”.</li></ul>
+    <p>Regla de oro de la guía: trabajar con retornos, no con precios, porque las tendencias de precio engañan a cualquier modelo.</p>
+  </aside>
+</section>
+
+<!-- C · TOKENS -->
+<section class="slide" data-title="Los tokens">
+  <div class="inner g2">
+    <div>
+      <p class="kicker rv"><span class="pill">02</span> Los tokens</p>
+      <h2 class="rv" style="--d:1">¿Qué es un token y qué tokens aparecen?</h2>
+      <p class="rv" style="--d:2">Un <b>token</b> es una moneda digital que vive en una blockchain. Su precio sube y baja según cuánto lo compran y venden.</p>
+      <div class="card rv" style="--d:3;margin-top:1rem;padding:6px 12px">
+        <table>
+          <tr><th>Token</th><th>Qué es</th><th>Papel en el reto</th></tr>
+          <tr><td><b class="acc">MATIC</b></td><td>Token de Polygon (Layer 2)</td><td>Lo que queremos explicar</td></tr>
+          <tr><td><b class="l2c">Índice L2</b></td><td>Mediana de varios tokens Layer 2</td><td>El “mercado” que lo explica</td></tr>
+          <tr><td><b style="color:var(--warn)">BTC</b></td><td>Bitcoin, la cripto más grande</td><td>Segundo factor (bonus)</td></tr>
+        </table>
+      </div>
+      <p class="rv small muted" style="--d:4;margin-top:.8rem">El dataset no dice qué tokens exactos forman el índice; solo que es su <b>mediana</b>. Se usa la mediana y no el promedio para que un solo token con un día loco no distorsione el índice.</p>
+    </div>
+    <div class="rv zoom" style="--d:2">
+      <div class="layers">
+        <div class="ly l2"><span class="tag acc">Layer 2 · vías rápidas</span><div class="chips"><b class="acc">Polygon (MATIC)</b><b>Arbitrum</b><b>Optimism</b><b>…</b></div></div>
+        <div class="arrow-down">construidas encima de ↓</div>
+        <div class="ly l1"><span class="tag">Layer 1 · blockchain principal</span><div class="chips"><b>Ethereum</b></div></div>
+        <div class="ly btc"><span class="tag warn">Referencia del mercado cripto</span><div class="chips"><b>Bitcoin (BTC)</b></div></div>
+      </div>
+      <div class="simple"><p class="t">En simple</p><p>Ethereum es la autopista principal; las Layer 2 son carriles exprés construidos encima. MATIC es uno de esos carriles.</p></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Un token es una moneda digital registrada en una blockchain. En este reto hay tres series de precios de tokens:</p>
+    <ul><li>MATIC, el token de Polygon, que es una red Layer 2 sobre Ethereum. Es la variable que queremos explicar.</li>
+    <li>El índice L2, que resume a varios tokens Layer 2 tomando la mediana de sus retornos cada día. Ejemplos conocidos de redes Layer 2 son Arbitrum y Optimism; el dataset no detalla cuáles componen el índice.</li>
+    <li>Bitcoin, que se usa en el bonus como factor general del mercado cripto.</li></ul>
+    <p>¿Por qué mediana? Porque si un token del grupo se dispara un día, el promedio se movería mucho; la mediana casi no.</p>
+  </aside>
+</section>
+
+<!-- D · CÓMO SE HACE -->
+<section class="slide" data-title="¿Cómo se hace?">
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">03</span> ¿Cómo se hace?</p>
+    <h2 class="rv wide" style="--d:1">El proceso, de principio a fin</h2>
+    <p class="rv lead" style="--d:2">Todo proyecto de minería de datos sigue un camino parecido. Este fue el mío:</p>
+    <div class="flow" style="margin-top:1.6rem">
+      <div class="fl rv" style="--d:3"><div class="ic">?</div><b>Pregunta</b><span>¿MATIC sigue al mercado L2? ¿Cuánto?</span></div>
+      <div class="fl rv" style="--d:4"><div class="ic">▦</div><b>Datos</b><span>CSV con 120 días y 6 columnas</span></div>
+      <div class="fl rv" style="--d:5"><div class="ic">✓</div><b>Limpieza</b><span>Faltantes, duplicados, fechas, tipos</span></div>
+      <div class="fl rv" style="--d:6"><div class="ic">◔</div><b>Exploración</b><span>Gráficos y correlación</span></div>
+      <div class="fl rv" style="--d:7"><div class="ic">╱</div><b>Modelo</b><span>Recta de regresión → beta</span></div>
+      <div class="fl rv" style="--d:8"><div class="ic">⚖</div><b>Validación</b><span>Probar con días no vistos</span></div>
+      <div class="fl rv" style="--d:9"><div class="ic">⚑</div><b>Uso</b><span>Escenario y alertas</span></div>
+      <div class="fl rv" style="--d:10"><div class="ic">✎</div><b>Comunicar</b><span>Informe, demo web, diapositivas</span></div>
+    </div>
+    <div class="simple rv" style="--d:11"><p class="t">Clave</p><p>Cada número lo calculé <b>dos veces</b>: en Python y en Excel. Si ambos coinciden, el resultado es confiable y no un error de fórmula.</p></div>
+  </div>
+  <aside class="notes">
+    <p>Así se hace un proyecto de este tipo, en orden:</p>
+    <ul><li>Se parte de una pregunta clara.</li><li>Se cargan y revisan los datos.</li><li>Se limpian.</li><li>Se exploran con gráficos antes de calcular.</li><li>Se construye un modelo, aquí una recta.</li><li>Se valida con datos que el modelo no usó.</li><li>Se le da un uso práctico.</li><li>Y se comunica de forma honesta.</li></ul>
+    <p>Lo hice primero en un notebook de Python, luego lo repliqué en Excel con las fórmulas de la guía para verificar, y finalmente preparé el informe, una demo web y estas diapositivas. Todo está versionado en GitHub.</p>
+  </aside>
+</section>
+
+<!-- E · HERRAMIENTAS -->
+<section class="slide" data-title="Herramientas">
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">04</span> Herramientas</p>
+    <h2 class="rv wide" style="--d:1">Qué usé y por qué</h2>
+    <div class="g4 tools" style="margin-top:1.3rem">
+      <div class="card rv" style="--d:2"><span class="tag acc">Lenguaje</span><h3>Python</h3><p class="small muted">Lenguaje estándar para análisis de datos.</p><p class="small why"><b>Por qué:</b> todo queda en código: se puede repetir y revisar paso a paso.</p></div>
+      <div class="card rv" style="--d:2"><span class="tag acc">Librería</span><h3>pandas</h3><p class="small muted">Maneja tablas de datos.</p><p class="small why"><b>Por qué:</b> cargar el CSV y revisar nulos, duplicados y fechas en una línea cada uno.</p></div>
+      <div class="card rv" style="--d:3"><span class="tag acc">Librería</span><h3>numpy</h3><p class="small muted">Cálculo numérico rápido.</p><p class="small why"><b>Por qué:</b> ajustar la recta (<code>polyfit</code>), calcular RMSE y el bootstrap.</p></div>
+      <div class="card rv" style="--d:3"><span class="tag acc">Librería</span><h3>matplotlib</h3><p class="small muted">Gráficos en Python.</p><p class="small why"><b>Por qué:</b> ver la relación antes de medirla; los gráficos del informe salen de aquí.</p></div>
+      <div class="card rv" style="--d:4"><span class="tag">Entorno</span><h3>Jupyter + VS Code</h3><p class="small muted">Notebook: código, gráficos y texto juntos.</p><p class="small why"><b>Por qué:</b> cada paso tiene su celda de código y su respuesta escrita, como pide la guía.</p></div>
+      <div class="card rv" style="--d:4"><span class="tag good">Hoja de cálculo</span><h3>Excel</h3><p class="small muted">Fórmulas visibles en celdas.</p><p class="small why"><b>Por qué:</b> verificar cada número por otro camino y que cualquiera pueda ver el cálculo.</p></div>
+      <div class="card rv" style="--d:5"><span class="tag warn">Web</span><h3>HTML · CSS · JS</h3><p class="small muted">La demo y estas diapositivas.</p><p class="small why"><b>Por qué:</b> se abre en cualquier navegador y pantalla, sin instalar nada.</p></div>
+      <div class="card rv" style="--d:5"><span class="tag">Versiones</span><h3>Git + GitHub</h3><p class="small muted">Guarda el historial del proyecto.</p><p class="small why"><b>Por qué:</b> usar el proyecto desde cualquier computadora y publicar la demo.</p></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Cada herramienta tiene una razón:</p>
+    <ul><li>Python porque es el estándar en ciencia de datos y deja el análisis reproducible.</li>
+    <li>pandas para leer el CSV y hacer la limpieza: isna, duplicated, diff de fechas, describe.</li>
+    <li>numpy para la regresión con polyfit, el RMSE, el bootstrap de 5000 remuestreos y la regresión con dos factores (lstsq).</li>
+    <li>matplotlib para los gráficos con título, ejes y unidades.</li>
+    <li>Jupyter dentro de VS Code porque mezcla código, resultados y texto.</li>
+    <li>Excel para verificar con fórmulas como PENDIENTE o COEF.DE.CORREL; además es lo que más gente sabe leer.</li>
+    <li>HTML, CSS y JavaScript para la demo interactiva y estas diapositivas; los gráficos están hechos a mano con SVG, sin librerías.</li>
+    <li>Git y GitHub para tener el proyecto en la nube y versionado.</li></ul>
+  </aside>
+</section>
+
+<!-- 4 · RUTA -->
+<section class="slide" data-title="La ruta del análisis">
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">03</span> La guía del reto</p>
+    <h2 class="rv wide" style="--d:1">El análisis en 5 pasos</h2>
+    <div class="steps" style="margin-top:1.6rem">
+      <div class="step rv" style="--d:2"><div class="n">1</div><h3>Limpiar</h3><p>Revisar que los datos estén completos y correctos.</p></div>
+      <div class="step rv" style="--d:3"><div class="n">2</div><h3>Explorar</h3><p>Mirar los gráficos antes de calcular.</p></div>
+      <div class="step rv" style="--d:4"><div class="n">3</div><h3>Medir</h3><p>Calcular la <b>beta</b>: cuánto sigue MATIC al mercado.</p></div>
+      <div class="step rv" style="--d:5"><div class="n">4</div><h3>Validar</h3><p>Probar el modelo con días que nunca vio.</p></div>
+      <div class="step rv" style="--d:6"><div class="n">5</div><h3>Usar</h3><p>Escenario de crisis y alertas de días raros.</p></div>
+    </div>
+    <p class="rv small muted" style="--d:7;margin-top:1.4rem">Así organiza la guía el trabajo. Cada paso tiene un objetivo, código en Python, su equivalente en Excel y un punto de control para saber si vas bien.</p>
+  </div>
+  <aside class="notes">
+    <p>Seguí cinco pasos, que son el esqueleto de cualquier proyecto de minería de datos: limpiar, explorar, modelar, validar y usar.</p>
+    <p>Además hice el bonus: agregar Bitcoin como segundo factor.</p>
+    <p>Todo está en un notebook de Python, en un script reproducible, en un Excel con las fórmulas de la guía y en una demo web. Los números coinciden en las tres versiones.</p>
+  </aside>
+</section>
+
+<!-- 5 · DATASET -->
+<section class="slide" data-title="Los datos">
+  <div class="inner g2 l">
+    <div>
+      <p class="kicker rv"><span class="pill">05</span> Los datos</p>
+      <h2 class="rv" style="--d:1">120 días, una fila por día</h2>
+      <p class="rv" style="--d:2">Del <b>1 de marzo</b> al <b>28 de junio de 2023</b>. Es un dataset sintético creado para el reto, con la misma estructura de un análisis real.</p>
+      <div class="g2 rv" style="--d:3;margin-top:1.2rem;gap:12px;grid-template-columns:1fr 1fr">
+        <div class="card"><div class="num" data-count="120">0</div><div class="lbl">filas (días)</div></div>
+        <div class="card"><div class="num" data-count="6">0</div><div class="lbl">columnas</div></div>
+      </div>
+    </div>
+    <div class="card rv" style="--d:2">
+      <table>
+        <tr><th>Columna</th><th>Qué es</th></tr>
+        <tr><td><code>fecha</code></td><td>Día de la observación</td></tr>
+        <tr><td><code>precio_matic</code></td><td>Precio de MATIC en dólares (USD)</td></tr>
+        <tr><td><code>ret_matic</code></td><td>Retorno diario de MATIC (decimal)</td></tr>
+        <tr><td><code>ret_indice_l2</code></td><td>Retorno diario del mercado L2 (decimal)</td></tr>
+        <tr><td><code>ret_btc</code></td><td>Retorno diario de Bitcoin (decimal)</td></tr>
+        <tr><td><code>volumen_musd</code></td><td>Dinero negociado, en millones de USD</td></tr>
+      </table>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>El archivo dataset_reto_l2.csv tiene 120 días y 6 columnas.</p>
+    <p>Las dos columnas protagonistas son ret_matic (lo que queremos explicar) y ret_indice_l2 (lo que lo explica). ret_btc se usa en el bonus y volumen_musd ayuda a interpretar las alertas.</p>
+    <p>Importante: los retornos están en decimal. Si una fórmula pide “1 %”, se usa 0.01.</p>
+  </aside>
+</section>
+
+<!-- F · QUÉ CONTIENEN -->
+<section class="slide" data-title="Qué contienen los datos">
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">05</span> ¿Qué contienen los datos?</p>
+    <h2 class="rv wide" style="--d:1">Así se ve el archivo por dentro</h2>
+    <div class="g2" style="align-items:start;margin-top:1rem">
+      <div class="card rv" style="--d:2;padding:10px 12px">
+        <h3 style="padding:.3rem .5rem 0">Primeras 5 filas del CSV</h3>
+        <div class="xscroll"><table class="mono-t">
+          <tr><th>fecha</th><th>precio</th><th>ret_matic</th><th>ret_l2</th><th>ret_btc</th><th>vol.</th></tr>
+          <tr><td>2023-03-01</td><td>1.0894</td><td>-0.0097</td><td class="hl">0.0</td><td>0.0009</td><td>66.9</td></tr>
+          <tr><td>2023-03-02</td><td>1.1102</td><td>0.0189</td><td>0.0054</td><td>-0.0027</td><td>80.6</td></tr>
+          <tr><td>2023-03-03</td><td>1.1032</td><td>-0.0063</td><td>-0.0049</td><td>-0.0041</td><td>66.6</td></tr>
+          <tr><td>2023-03-04</td><td>1.0895</td><td>-0.0125</td><td>-0.016</td><td>-0.0296</td><td>64.2</td></tr>
+          <tr><td>2023-03-05</td><td>1.0751</td><td>-0.0133</td><td>-0.0082</td><td>-0.0162</td><td>50.5</td></tr>
+          <tr><td colspan="6" class="muted" style="text-align:center">… 115 filas más, hasta 2023-06-28</td></tr>
+        </table></div>
+        <p class="small muted" style="padding:.3rem .5rem">Ejemplo: el 2-mar MATIC subió <b>+1,89 %</b> (0.0189) y el mercado L2 <b>+0,54 %</b>.</p>
+      </div>
+      <div class="card rv" style="--d:3;padding:10px 12px">
+        <h3 style="padding:.3rem .5rem 0">Resumen de cada columna</h3>
+        <div class="xscroll"><table>
+          <tr><th>Columna</th><th>Mín.</th><th>Máx.</th><th>Promedio</th></tr>
+          <tr><td>Precio MATIC</td><td class="n">0,74 $</td><td class="n">1,11 $</td><td class="n">0,85 $</td></tr>
+          <tr><td>Retorno MATIC</td><td class="n badc">−9,37 %</td><td class="n goodc">+9,29 %</td><td class="n">−0,29 %</td></tr>
+          <tr><td>Retorno L2</td><td class="n badc">−4,53 %</td><td class="n goodc">+4,04 %</td><td class="n">−0,26 %</td></tr>
+          <tr><td>Retorno BTC</td><td class="n badc">−3,71 %</td><td class="n goodc">+3,16 %</td><td class="n">−0,31 %</td></tr>
+          <tr><td>Volumen</td><td class="n">44,4 M$</td><td class="n">89,3 M$</td><td class="n">64,1 M$</td></tr>
+        </table></div>
+      </div>
+    </div>
+    <div class="g3" style="margin-top:1rem">
+      <div class="card rv" style="--d:4"><div class="num" style="font-size:clamp(1.4rem,2.6vw,2rem)"><span class="goodc">51</span> / <span class="badc">67</span></div><div class="lbl">días que MATIC subió / bajó (2 sin cambio)</div></div>
+      <div class="card rv" style="--d:5"><div class="num" style="font-size:clamp(1.4rem,2.6vw,2rem)">×1,6</div><div class="lbl">MATIC se mueve 1,6 veces más que el índice L2 (desviación 2,44 % vs 1,56 %)</div></div>
+      <div class="card rv" style="--d:6"><div class="num" style="font-size:clamp(1.4rem,2.6vw,2rem)">0</div><div class="lbl">datos faltantes en las 720 celdas (120 filas × 6 columnas)</div></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Así se ve el archivo crudo. Cada fila es un día; los retornos están en decimal y el volumen en millones de dólares. La celda marcada es el 0.0 del primer día, del que hablaré en los problemas encontrados.</p>
+    <p>El resumen por columna (df.describe en Python, MIN, MAX y PROMEDIO en Excel) muestra que fue un periodo bajista: los tres retornos tienen promedio negativo y MATIC bajó más días de los que subió.</p>
+    <p>También se ve que MATIC es más volátil que el índice: su desviación estándar diaria es 2,44 % frente a 1,56 %. Tiene sentido: un índice que resume varios tokens se mueve menos que un token solo.</p>
+  </aside>
+</section>
+
+<!-- G · EXCEL HOJA -->
+<section class="slide" data-title="La hoja de Excel">
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">05</span> La tabla de Excel</p>
+    <h2 class="rv wide" style="--d:1">El mismo análisis, hecho con fórmulas</h2>
+    <div class="xl rv zoom" style="--d:2">
+      <div class="xl-top"><span class="xl-dot"></span><span class="xl-dot"></span><span class="xl-dot"></span><b>reto_radar_l2.xlsx</b><span class="muted">· hoja “datos”</span></div>
+      <div class="xl-fx"><span class="xl-name">L2</span><span class="xl-f">fx</span><code>=PENDIENTE(C2:C121;D2:D121)</code></div>
+      <div class="xscroll"><table class="xl-grid">
+        <tr class="h"><th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th class="gap">G … J</th><th>K</th><th>L</th></tr>
+        <tr><th>1</th><td class="hd">fecha</td><td class="hd">precio_matic</td><td class="hd">ret_matic</td><td class="hd">ret_indice_l2</td><td class="hd">ret_btc</td><td class="hd">volumen_musd</td><td class="gap"></td><td class="k">alpha</td><td class="v">−0,00097</td></tr>
+        <tr><th>2</th><td>01/03/2023</td><td>1,0894</td><td>−0,0097</td><td>0</td><td>0,0009</td><td>66,9</td><td class="gap"></td><td class="k">beta</td><td class="v sel">0,7248</td></tr>
+        <tr><th>3</th><td>02/03/2023</td><td>1,1102</td><td>0,0189</td><td>0,0054</td><td>−0,0027</td><td>80,6</td><td class="gap"></td><td class="k">correlación</td><td class="v">0,4624</td></tr>
+        <tr><th>4</th><td>03/03/2023</td><td>1,1032</td><td>−0,0063</td><td>−0,0049</td><td>−0,0041</td><td>66,6</td><td class="gap"></td><td class="k">R²</td><td class="v">0,2138</td></tr>
+        <tr><th>5</th><td>04/03/2023</td><td>1,0895</td><td>−0,0125</td><td>−0,016</td><td>−0,0296</td><td>64,2</td><td class="gap"></td><td class="k"></td><td class="v"></td></tr>
+        <tr><th>6</th><td>05/03/2023</td><td>1,0751</td><td>−0,0133</td><td>−0,0082</td><td>−0,0162</td><td>50,5</td><td class="gap"></td><td class="k">alpha (train)</td><td class="v">−0,00099</td></tr>
+        <tr><th>7</th><td>06/03/2023</td><td>1,0831</td><td>0,0074</td><td>−0,0178</td><td>−0,0071</td><td>65,3</td><td class="gap"></td><td class="k">beta (train)</td><td class="v">0,7948</td></tr>
+        <tr class="dots"><th>⋮</th><td colspan="9">⋮</td></tr>
+        <tr><th>121</th><td>28/06/2023</td><td>0,7779</td><td>0,0008</td><td>0,0035</td><td>−0,0124</td><td>57,7</td><td class="gap"></td><td class="k"></td><td class="v"></td></tr>
+      </table></div>
+    </div>
+    <p class="rv small muted" style="--d:3;margin-top:.8rem">Columnas <b>A–F</b>: los datos originales. Columnas <b>G–I</b>: predicciones y errores de la validación. <b>M–N</b>: residuo y alerta de cada día. <b>K–L</b>: los resultados, con su fórmula en cada celda.</p>
+  </div>
+  <aside class="notes">
+    <p>Esta es la hoja de Excel. Las columnas A a F son el CSV tal cual: los datos van de la fila 2 a la 121.</p>
+    <p>En las columnas K y L están los resultados. Por ejemplo, la celda L2 tiene la fórmula PENDIENTE(C2:C121; D2:D121), que da la beta 0,7248, igual que Python. Ojo: PENDIENTE recibe primero la Y (MATIC) y después la X (mercado).</p>
+    <p>Las columnas G, H e I sirven para la validación (predicción y errores al cuadrado en las filas 92 a 121) y M y N para las alertas (residuo y la palabra ALERTA).</p>
+  </aside>
+</section>
+
+<!-- H · EXCEL FÓRMULAS -->
+<section class="slide" data-title="Fórmulas de Excel">
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">05</span> Las fórmulas</p>
+    <h2 class="rv wide" style="--d:1">Cada resultado, celda por celda</h2>
+    <div class="card rv" style="--d:2;margin-top:.8rem;padding:8px 10px">
+      <div class="xscroll"><table class="ftab">
+        <tr><th>Celda</th><th>Qué calcula</th><th>Fórmula (Excel en español)</th><th>Resultado</th><th>Paso</th></tr>
+        <tr><td><b>L1</b></td><td>alpha</td><td><code>=INTERSECCION.EJE(C2:C121;D2:D121)</code></td><td class="n">−0,00097</td><td>3</td></tr>
+        <tr><td><b>L2</b></td><td>beta</td><td><code>=PENDIENTE(C2:C121;D2:D121)</code></td><td class="n acc"><b>0,7248</b></td><td>3</td></tr>
+        <tr><td><b>L3</b></td><td>correlación</td><td><code>=COEF.DE.CORREL(D2:D121;C2:C121)</code></td><td class="n">0,4624</td><td>2</td></tr>
+        <tr><td><b>L4</b></td><td>R²</td><td><code>=COEFICIENTE.R2(C2:C121;D2:D121)</code></td><td class="n">0,2138</td><td>3</td></tr>
+        <tr><td><b>L6 · L7</b></td><td>alpha y beta con 90 días</td><td><code>=PENDIENTE(C2:C91;D2:D91)</code></td><td class="n">0,7948</td><td>4</td></tr>
+        <tr><td><b>G92</b></td><td>predicción (hasta G121)</td><td><code>=$L$6+$L$7*D92</code></td><td class="n">—</td><td>4</td></tr>
+        <tr><td><b>H92 · I92</b></td><td>error² modelo · error² “predecir 0”</td><td><code>=(C92-G92)^2</code> · <code>=C92^2</code></td><td class="n">—</td><td>4</td></tr>
+        <tr><td><b>L9 · L10</b></td><td>RMSE modelo · RMSE base</td><td><code>=RAIZ(PROMEDIO(H92:H121))</code></td><td class="n">0,0168 · 0,0182</td><td>4</td></tr>
+        <tr><td><b>M2</b></td><td>residuo (hasta M121)</td><td><code>=C2-$L$2*D2</code></td><td class="n">—</td><td>5</td></tr>
+        <tr><td><b>L12</b></td><td>sigma del residuo</td><td><code>=DESVEST.M(M2:M121)</code></td><td class="n">0,0216</td><td>5</td></tr>
+        <tr><td><b>N2</b></td><td>¿alerta?</td><td><code>=SI(ABS(M2)&gt;2*$L$12;"ALERTA";"")</code></td><td class="n">—</td><td>5</td></tr>
+        <tr><td><b>L13</b></td><td>número de alertas</td><td><code>=CONTAR.SI(N2:N121;"ALERTA")</code></td><td class="n badc"><b>4</b></td><td>5</td></tr>
+        <tr><td><b>L14</b></td><td>escenario L2 −10 %</td><td><code>=L2*-0,10</code></td><td class="n badc">−0,0725</td><td>5</td></tr>
+      </table></div>
+    </div>
+    <p class="rv small muted" style="--d:3;margin-top:.7rem"><b>Verificado:</b> los resultados de Excel coinciden con los de Python hasta el último decimal mostrado.</p>
+  </div>
+  <aside class="notes">
+    <p>Esta tabla resume todas las fórmulas de Excel que usé, en qué celda están, qué calculan y qué resultado dan.</p>
+    <p>Detalles importantes: los signos $ fijan la celda al copiar la fórmula hacia abajo; por ejemplo $L$2 siempre apunta a la beta. En la validación la beta se calcula solo con las filas 2 a 91 (90 días) y se predice en las filas 92 a 121.</p>
+    <p>Si se usa Google Sheets o Excel en inglés, el separador es la coma y las funciones se llaman SLOPE, INTERCEPT, CORREL, RSQ, STDEV y COUNTIF.</p>
+  </aside>
+</section>
+
+<!-- 6 · PASO 1 -->
+<section class="slide" data-title="Paso 1 · Limpiar">
+  <div class="inner g2">
+    <div>
+      <p class="kicker rv"><span class="pill">Paso 1</span> Entender y limpiar</p>
+      <h2 class="rv" style="--d:1">Primero, revisar que los datos estén sanos</h2>
+      <p class="rv" style="--d:2">Si los datos tienen huecos o errores, cualquier cálculo posterior sale mal. Por eso se revisa todo antes de calcular.</p>
+      <div class="card rv" style="--d:4;margin-top:1.2rem;border-color:#EADFC2;background:#FFFCF4">
+        <span class="tag warn">Algo llamativo</span>
+        <p class="small" style="margin-top:.6rem">El primer día, <code>ret_indice_l2</code> vale <b>0.0 exacto</b>: es el único cero de los 120 días y no hay día anterior para calcularlo (probablemente un relleno).</p>
+        <p class="small" style="margin-top:.5rem"><b>Decisión: lo dejo.</b> Un 0 es neutro y quitarlo cambia la beta de 0,7248 a 0,7256 (casi nada).</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="check rv" style="--d:2"><div class="ic"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div><b>120 filas y 6 columnas</b><span>Lo esperado según la guía</span></div></div>
+      <div class="check rv" style="--d:3"><div class="ic"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div><b>0 valores vacíos</b><span>Ninguna celda sin dato</span></div></div>
+      <div class="check rv" style="--d:4"><div class="ic"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div><b>0 filas duplicadas</b><span>Ningún día repetido</span></div></div>
+      <div class="check rv" style="--d:5"><div class="ic"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div><b>Fechas seguidas, de 1 en 1 día</b><span>119 saltos, todos de exactamente 1 día</span></div></div>
+      <div class="check rv" style="--d:6"><div class="ic"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div><b>Tipos correctos y datos coherentes</b><span><code>ret_matic</code> coincide con ln(precio hoy / ayer)</span></div></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>En Python usé df.shape, df.dtypes, df.isna().sum(), df.duplicated().sum() y df["fecha"].diff() para ver los saltos entre fechas. En Excel: CONTARA, CONTAR.BLANCO y CONTAR.SI.</p>
+    <p>Resultado: 120 filas, 6 columnas, cero nulos, cero duplicados y fechas consecutivas. Además comprobé que el retorno de MATIC coincide con el logaritmo del cociente de precios (diferencia máxima 0,00014, solo redondeo).</p>
+    <p>La guía pedía decidir sobre la primera fila, que tiene un 0 exacto en el índice L2. La dejé porque no altera el resultado y porque la guía trabaja con los 120 días (corte 90/30).</p>
+  </aside>
+</section>
+
+<!-- I · PROBLEMAS -->
+<section class="slide" data-title="Problemas encontrados">
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">06</span> Problemas encontrados</p>
+    <h2 class="rv wide" style="--d:1">¿Había datos faltantes o errores?</h2>
+    <p class="rv lead" style="--d:2"><b>No faltaba ningún dato.</b> Pero sí aparecieron detalles que había que revisar y trampas que había que evitar.</p>
+    <div class="g3 probs" style="margin-top:.9rem">
+      <div class="card rv" style="--d:3"><span class="tag good">Sin problema</span><h3>Datos faltantes y duplicados</h3><p class="small muted">0 celdas vacías, 0 filas repetidas y ningún día saltado.</p></div>
+      <div class="card rv" style="--d:3"><span class="tag warn">Revisado · se deja</span><h3>Un 0.0 sospechoso</h3><p class="small muted">El 1-mar el índice L2 vale 0 exacto (no hay día anterior). Quitarlo cambia la beta en menos de 0,001.</p></div>
+      <div class="card rv" style="--d:4"><span class="tag warn">Revisado · inofensivo</span><h3>Un “−0.0”</h3><p class="small muted">El 7-mar <code>ret_matic</code> dice −0.0: un cero con signo por redondeo. Para el cálculo es 0.</p></div>
+      <div class="card rv" style="--d:4"><span class="tag warn">Revisado · inofensivo</span><h3>Redondeo a 4 decimales</h3><p class="small muted">Al recalcular el retorno con los precios hay diferencias de hasta 0,00014. Es solo redondeo.</p></div>
+      <div class="card rv" style="--d:5"><span class="tag warn">Revisado · se dejan</span><h3>Dos días extremos</h3><p class="small muted">10-abr (+9,3 %) y 25-may (−9,4 %). No se borran: son justo los días que las alertas deben detectar.</p></div>
+      <div class="card rv" style="--d:5"><span class="tag warn">Práctico</span><h3>Excel en otro idioma</h3><p class="small muted">En español se usa <code>;</code> y PENDIENTE; en inglés <code>,</code> y SLOPE. Hay que adaptar las fórmulas.</p></div>
+    </div>
+    <div class="card rv" style="--d:6;margin-top:.8rem;border-color:var(--acc);background:var(--acc-soft)">
+      <span class="tag acc">Trampas evitadas</span>
+      <div class="g3" style="margin-top:.7rem;gap:12px">
+        <p class="small"><b>Usar precios</b> en vez de retornos: la tendencia engaña al modelo.</p>
+        <p class="small"><b>Invertir X e Y:</b> la beta saldría 0,295 en vez de 0,725.</p>
+        <p class="small"><b>Validar con los 120 días:</b> daría una mejora falsa de 9,0 % (es “mirar el examen antes”).</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>La pregunta típica: ¿había datos faltantes? No: cero celdas vacías, cero duplicados y las fechas van seguidas de un día en un día. No tuve que rellenar ni eliminar nada.</p>
+    <p>Sí encontré detalles que revisé y documenté:</p>
+    <ul><li>El 0.0 exacto del primer día en el índice: probablemente un relleno porque no hay día anterior. Lo dejé porque no cambia el resultado.</li>
+    <li>Un −0.0 en el retorno de MATIC del 7 de marzo: el precio no cambió y el redondeo dejó el signo. Vale 0.</li>
+    <li>Los retornos están redondeados a 4 decimales, por eso no coinciden exactamente con el logaritmo de los precios.</li>
+    <li>Dos valores extremos que no son errores sino información: los dejé y las alertas los encontraron.</li>
+    <li>Al pasar a Excel hay que cuidar el idioma: separadores y nombres de funciones.</li></ul>
+    <p>Y evité las tres trampas que advierte la guía: trabajar con precios, invertir los ejes y usar datos de prueba para entrenar.</p>
+  </aside>
+</section>
+
+<!-- 7 · PASO 2 PRECIO -->
+<section class="slide" data-title="Paso 2 · El precio">
+  <div class="inner g2 r">
+    <div class="rv zoom" style="--d:1">
+      <svg class="chart" id="c-price" viewBox="0 0 640 380"></svg>
+    </div>
+    <div>
+      <p class="kicker rv"><span class="pill">Paso 2</span> Explorar</p>
+      <h2 class="rv" style="--d:1">El precio de MATIC cayó un 29 %</h2>
+      <div class="g2 rv" style="--d:2;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="card"><div class="num" style="font-size:clamp(1.4rem,2.6vw,2.1rem)">1,09</div><div class="lbl">USD al inicio</div></div>
+        <div class="card"><div class="num" style="font-size:clamp(1.4rem,2.6vw,2.1rem)">0,78</div><div class="lbl">USD al final</div></div>
+      </div>
+      <p class="rv small" style="--d:3;margin-top:1rem">El punto más bajo fue el <b>1 de abril</b> (0,7365 USD). Se ven dos saltos bruscos: una <b class="goodc">subida el 10-abr</b> y una <b class="badc">caída el 25-may</b>.</p>
+      <div class="simple rv" style="--d:4"><p class="t">En simple</p><p>Mirar el gráfico primero nos da pistas: esos dos saltos raros los volveremos a encontrar más adelante.</p></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>El primer gráfico es el precio de MATIC en el tiempo. Baja de 1,09 a 0,78 dólares: una caída del 29 % en cuatro meses.</p>
+    <p>Fíjense en dos saltos marcados: el 10 de abril sube de golpe y el 25 de mayo cae en escalón. Guardemos esas fechas: en el paso 5 las alertas las detectan solas.</p>
+    <p>Este gráfico es solo para entender; el modelo no usa precios, usa retornos.</p>
+  </aside>
+</section>
+
+<!-- 8 · PASO 2 DISPERSION -->
+<section class="slide" data-title="Paso 2 · Dispersión">
+  <div class="inner g2 r">
+    <div class="rv zoom" style="--d:1">
+      <svg class="chart" id="c-scatter" viewBox="0 0 560 420"></svg>
+    </div>
+    <div>
+      <p class="kicker rv"><span class="pill">Paso 2</span> Explorar</p>
+      <h2 class="rv" style="--d:1">Se mueven juntos, pero no siempre</h2>
+      <p class="rv small" style="--d:2">Cada punto es un día: a la derecha, el mercado L2 subió; arriba, MATIC subió. La nube se inclina hacia arriba.</p>
+      <div class="rv" style="--d:3">
+        <div class="scale"><div class="mk" id="corr-mk" data-l="0,46"></div><div class="ticks"><span>−1</span><span>0</span><span>+1</span></div></div>
+        <div class="zones"><span>opuestos</span><span>sin relación</span><span>idénticos</span></div>
+      </div>
+      <p class="rv" style="--d:4;margin-top:1rem">La <b>correlación es 0,46</b>: positiva y <b>moderada</b>.</p>
+      <div class="simple rv" style="--d:5"><p class="t">En simple</p><p>La correlación va de −1 a +1. Nos dice <i>si</i> se mueven juntos, pero no <i>cuánto</i>. Para eso está la beta.</p></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>El diagrama de dispersión pone el retorno del mercado L2 en el eje X y el de MATIC en el eje Y. Cada punto es un día.</p>
+    <p>Si fueran idénticos, los puntos formarían una línea perfecta. Vemos una nube inclinada hacia arriba: hay relación, pero con mucho “ruido”.</p>
+    <p>La correlación es 0,46 (en Python x.corr(y), en Excel COEF.DE.CORREL). La interpreto como moderada. Ojo: la correlación no dice cuánto se mueve MATIC; eso lo responde la beta.</p>
+  </aside>
+</section>
+
+<!-- 9 · PASO 3 BETA -->
+<section class="slide" data-title="Paso 3 · La beta">
+  <div class="inner g2 r">
+    <div class="rv zoom" style="--d:1">
+      <svg class="chart" id="c-beta" viewBox="0 0 560 420"></svg>
+      <p class="small muted" style="text-align:center;margin-top:.3rem"><code>ret_matic = −0,00097 + 0,725 × ret_indice_l2</code></p>
+    </div>
+    <div>
+      <p class="kicker rv"><span class="pill">Paso 3</span> Medir la beta</p>
+      <h2 class="rv" style="--d:1">Trazamos la recta que mejor pasa por los puntos</h2>
+      <p class="rv small" style="--d:2">La inclinación de esa recta se llama <b>beta</b>.</p>
+      <div class="rv" style="--d:3;margin:.8rem 0"><span class="big acc" data-count="0.72" data-dec="2">0</span></div>
+      <p class="rv" style="--d:4">Por cada <b>1 %</b> que se mueve el mercado L2, MATIC se mueve en promedio <b class="acc">0,72 %</b> en la misma dirección.</p>
+      <div class="simple rv" style="--d:5"><p class="t">En simple</p><p>Si el mercado sube 10 %, MATIC tiende a subir unos 7 %. Es <b>un poco menos sensible</b> que el mercado (beta menor que 1).</p></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Ajusté la recta ret_matic = alpha + beta × ret_indice_l2 por mínimos cuadrados. En Python: np.polyfit(x, y, 1), que devuelve primero la pendiente. En Excel: PENDIENTE(C2:C121; D2:D121), que recibe primero Y.</p>
+    <p>La beta es 0,725. Traducción: por cada 1 % del mercado L2, MATIC se mueve 0,72 %. Como es menor que 1, MATIC es algo menos sensible que el índice.</p>
+    <p>Alpha (−0,00097) es casi cero: cuando el mercado no se mueve, MATIC tampoco se mueve en promedio.</p>
+    <p>Cuidado con un error común: si se invierten X e Y sale 0,295, que responde otra pregunta.</p>
+  </aside>
+</section>
+
+<!-- 10 · PASO 3 R2 -->
+<section class="slide" data-title="Paso 3 · Qué tanto explica">
+  <div class="inner g2">
+    <div>
+      <p class="kicker rv"><span class="pill">Paso 3</span> R² e incertidumbre</p>
+      <h2 class="rv" style="--d:1">El mercado explica solo una parte</h2>
+      <p class="rv" style="--d:2">El <b>R² = 0,21</b>: el mercado L2 explica el <b class="acc">21 %</b> del movimiento diario de MATIC. El otro <b>79 %</b> viene de factores propios: noticias, eventos del proyecto o simple ruido.</p>
+      <div class="card rv" style="--d:4;margin-top:1.3rem">
+        <h3>La beta es una estimación</h3>
+        <p class="small muted">Con estos datos, el valor real de la beta estaría (95 % de confianza) entre:</p>
+        <div class="range" id="ci" style="height:86px"></div>
+      </div>
+    </div>
+    <div class="rv zoom" style="--d:2;text-align:center">
+      <svg class="donut" viewBox="0 0 200 200" id="donut">
+        <circle cx="100" cy="100" r="80" stroke="#F1F0EC"/>
+        <circle cx="100" cy="100" r="80" stroke="var(--acc)" stroke-linecap="round" transform="rotate(-90 100 100)" stroke-dasharray="502.65" stroke-dashoffset="502.65" id="donut-arc" style="transition:stroke-dashoffset 1.6s var(--ease) .4s"/>
+        <text x="100" y="104" text-anchor="middle" style="font-size:44px;font-weight:800;fill:var(--ink);letter-spacing:-2px" id="donut-t">0 %</text>
+        <text x="100" y="130" text-anchor="middle" style="font-size:12px;fill:var(--muted)">explicado por L2</text>
+      </svg>
+      <div class="legend" style="justify-content:center"><span><i style="background:var(--acc)"></i>Lo explica el mercado L2 (21 %)</span><span><i style="background:#E4E3DE"></i>Factores propios de MATIC (79 %)</span></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>El R² es la correlación al cuadrado: 0,46² ≈ 0,21. Dice qué fracción del movimiento de MATIC explica el modelo.</p>
+    <p>Que sea 21 % significa que la corriente del río existe, pero el motor propio del bote pesa más: casi 4 de cada 5 partes del movimiento no las explica el mercado.</p>
+    <p>Además, la beta no es un número exacto: su error estándar es 0,13, y el intervalo de 95 % va de 0,47 a 0,98. Lo seguro es que es positiva y menor que 1.</p>
+  </aside>
+</section>
+
+<!-- 11 · PASO 4 IDEA -->
+<section class="slide" data-title="Paso 4 · La idea">
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">Paso 4</span> Validar a ciegas</p>
+    <h2 class="rv wide" style="--d:1">¿Funciona con días que nunca vio?</h2>
+    <p class="rv lead" style="--d:2">Un modelo puede “memorizar” sus datos. Para saber si de verdad sirve, hay que probarlo como un examen sorpresa.</p>
+    <div class="split rv fade" style="--d:3">
+      <div style="flex:90;background:var(--acc)">Entrenamiento · 90 días<span class="hide-s" style="opacity:.75;font-weight:500">&nbsp;(1-mar → 29-may)</span></div>
+      <div style="flex:30;background:var(--warn)">Prueba · 30</div>
+    </div>
+    <div class="g3" style="margin-top:1.4rem">
+      <div class="card rv" style="--d:4"><span class="tag acc">1</span><h3 style="margin-top:.6rem">Aprender</h3><p class="small muted">Calculo la beta <b>solo</b> con los primeros 90 días: sale <b>0,795</b>, parecida a la de antes.</p></div>
+      <div class="card rv" style="--d:5"><span class="tag warn">2</span><h3 style="margin-top:.6rem">Predecir</h3><p class="small muted">Con esa recta predigo el retorno de MATIC en los 30 días finales, que el modelo no conoce.</p></div>
+      <div class="card rv" style="--d:6"><span class="tag">3</span><h3 style="margin-top:.6rem">Comparar</h3><p class="small muted">Mido el error (<b>RMSE</b>) y lo comparo con un rival tonto: <b>“predecir siempre 0”</b>.</p></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Este es el paso más importante para la honestidad del análisis. Separé los datos: los primeros 90 días para entrenar y los últimos 30 para probar.</p>
+    <p>Es como estudiar con unos ejercicios y rendir el examen con otros. Usar los 120 días para calcular la beta y luego “probar” con los últimos 30 sería mirar el examen antes.</p>
+    <p>El RMSE es el error típico: la raíz del promedio de los errores al cuadrado. Menor es mejor. La línea base “predecir 0” es el rival mínimo: si no le gano a eso, el modelo no sirve.</p>
+  </aside>
+</section>
+
+<!-- 12 · PASO 4 RESULTADO -->
+<section class="slide" data-title="Paso 4 · Resultado">
+  <div class="inner g2 r">
+    <div class="rv zoom" style="--d:1">
+      <svg class="chart" id="c-valid" viewBox="0 0 640 380"></svg>
+      <div class="legend"><span><i style="background:#9A9AA4"></i>Lo que pasó realmente</span><span><i style="background:var(--acc)"></i>Lo que predijo el modelo</span><span><i style="background:transparent;border:1.5px dashed #9A9AA4"></i>Rival: predecir 0</span></div>
+    </div>
+    <div>
+      <p class="kicker rv"><span class="pill">Paso 4</span> Resultado</p>
+      <h2 class="rv" style="--d:1">El modelo gana, por poco</h2>
+      <div class="hb rv" style="--d:2"><div class="top"><span>Error del rival (predecir 0)</span><b class="mono">0,0182</b></div><div class="track"><div class="bar" data-w="100" style="background:#B9B8B2"></div></div></div>
+      <div class="hb rv" style="--d:3"><div class="top"><span>Error del modelo</span><b class="mono acc">0,0168</b></div><div class="track"><div class="bar" data-w="92.45" style="background:var(--acc)"></div></div></div>
+      <div class="rv" style="--d:4;display:flex;align-items:baseline;gap:.8rem;margin-top:1rem"><span class="big goodc" style="font-size:clamp(2.6rem,6vw,4.6rem)" data-count="7.5" data-dec="1" data-suf=" %">0</span><span class="muted small">menos error que el rival</span></div>
+      <p class="rv small" style="--d:5;margin-top:.4rem">Una mejora <b>real pero modesta</b>: el modelo se acerca más que el rival en 17 de los 30 días.</p>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>En los 30 días de prueba, el error del modelo es 0,0168 y el del rival “predecir 0” es 0,0182. Mejora = 1 − 0,0168/0,0182 = 7,5 %.</p>
+    <p>En el gráfico: la línea gris es lo que realmente hizo MATIC, la morada lo que predijo el modelo y la punteada es el rival (siempre 0). El modelo capta la dirección de algunos días, pero no su tamaño.</p>
+    <p>Como control: si hubiera hecho trampa usando los 120 días, la mejora habría salido 9,0 %. Ese número no vale.</p>
+  </aside>
+</section>
+
+<!-- 13 · PASO 4 HONESTIDAD -->
+<section class="slide" data-title="Paso 4 · ¿Es confiable?">
+  <div class="inner g2">
+    <div>
+      <p class="kicker rv"><span class="pill">Paso 4</span> Siendo honestos</p>
+      <h2 class="rv" style="--d:1">¿Ese 7,5 % es confiable? No del todo</h2>
+      <p class="rv" style="--d:2">30 días son pocos. Para comprobarlo, repetí la prueba <b>5000 veces</b> mezclando esos 30 días al azar (<i>bootstrap</i>).</p>
+      <ul class="clean rv" style="--d:3;margin-top:.8rem">
+        <li>La mejora puede ir de <b class="badc">−15 %</b> a <b class="goodc">+24 %</b>.</li>
+        <li>En <b>1 de cada 5</b> repeticiones el modelo <b>no gana</b>.</li>
+        <li>Además, usa el retorno de L2 <b>del mismo día</b>, que en la vida real no se conoce antes.</li>
+      </ul>
+    </div>
+    <div class="card rv" style="--d:2">
+      <h3>Rango posible de la mejora</h3>
+      <p class="small muted">95 % de los 5000 remuestreos</p>
+      <div class="range" id="boot" style="height:130px"></div>
+      <div class="simple" style="margin-top:.4rem"><p class="t">Conclusión</p><p>Un resultado modesto bien explicado vale más que uno inflado.</p></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>La guía pide ser honesto: ¿la diferencia es grande con solo 30 días? Mi respuesta es no.</p>
+    <p>Hice un bootstrap: tomé los 30 días de prueba al azar, con reemplazo, 5000 veces, y recalculé la mejora cada vez. El 95 % de las veces cae entre −15 % y +24 %, y el 20 % de las veces el modelo pierde.</p>
+    <p>Además, el modelo usa el movimiento del mercado del mismo día: sirve para explicar, no para adivinar el futuro.</p>
+  </aside>
+</section>
+
+<!-- 14 · PASO 5A ESCENARIO -->
+<section class="slide" data-title="Paso 5 · Escenario">
+  <div class="inner g2">
+    <div>
+      <p class="kicker rv"><span class="pill">Paso 5 · A</span> Escenario de crisis</p>
+      <h2 class="rv" style="--d:1">Si el mercado L2 cae 10 %, ¿cuánto cae MATIC?</h2>
+      <div class="card rv" style="--d:2;margin-top:.6rem">
+        <p class="mono" style="font-size:clamp(.95rem,1.5vw,1.2rem)">0,725 × (−10 %) = <b class="badc">−7,2 %</b></p>
+      </div>
+      <div class="rv" style="--d:3;margin-top:1rem"><span class="big badc" data-count="-7.2" data-dec="1" data-suf=" %">0</span></div>
+      <p class="rv small" style="--d:4;margin-top:.6rem">Pero cuidado: es una <b>extrapolación</b>. En 120 días el mercado L2 nunca cayó más de <b>4,53 %</b> en un día. Un −10 % es <b>2,2 veces</b> la peor caída vista.</p>
+    </div>
+    <div class="card rv" style="--d:3">
+      <h3>¿Qué tan extremo es −10 %?</h3>
+      <p class="small muted">Movimientos diarios del mercado L2 en los 120 días</p>
+      <svg class="chart" id="c-scen" viewBox="0 0 520 260"></svg>
+      <div class="simple" style="margin-top:.2rem"><p class="t">En simple</p><p>Es como predecir cómo maneja alguien en una tormenta habiéndolo visto solo con llovizna.</p></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Primer uso práctico: un escenario de estrés. Si el mercado L2 cae 10 % en un día, el modelo dice que MATIC cae alrededor de 7,2 % (beta × shock). En Excel: =L2*-0,10.</p>
+    <p>El gráfico muestra los 120 movimientos reales del índice (cada barrita es un día). Todos están entre −4,53 % (27 de marzo) y +4,04 % (12 de junio). El −10 % queda muy lejos, a unas 6,4 desviaciones estándar.</p>
+    <p>Por eso el número es orientativo: no sabemos si la relación se mantiene en una caída tan fuerte.</p>
+  </aside>
+</section>
+
+<!-- 15 · PASO 5B ALERTAS -->
+<section class="slide" data-title="Paso 5 · Alertas">
+  <div class="inner g2 r">
+    <div class="rv zoom" style="--d:1">
+      <svg class="chart" id="c-resid" viewBox="0 0 640 380"></svg>
+    </div>
+    <div>
+      <p class="kicker rv"><span class="pill">Paso 5 · B</span> Alertas</p>
+      <h2 class="rv" style="--d:1">Detectar los días en que MATIC “se fue por su cuenta”</h2>
+      <p class="rv small" style="--d:2">El <b>residuo</b> es lo que el mercado no explica:</p>
+      <p class="rv mono small" style="--d:2;margin:.4rem 0">residuo = ret_matic − 0,725 × ret_L2</p>
+      <p class="rv small" style="--d:3">Si el residuo pasa de <b>±2σ</b> (±4,33 %), el día es raro y se marca como alerta.</p>
+      <div class="rv" style="--d:4;display:flex;align-items:baseline;gap:.8rem;margin-top:.8rem"><span class="big badc" style="font-size:clamp(2.8rem,7vw,5rem)" data-count="4">0</span><span class="muted">días en alerta de 120</span></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Segundo uso práctico: un radar de alertas. Para cada día calculo el residuo: lo que se movió MATIC menos lo que “debería” haberse movido según el mercado.</p>
+    <p>La desviación estándar del residuo (σ) es 0,0216. Marco los días con residuo mayor a 2σ, es decir más de 4,33 % en valor absoluto. Las bandas rojas punteadas son ese umbral.</p>
+    <p>Salen 4 días, un número pequeño como pedía la guía. En Excel: =SI(ABS(M2)>2*$L$12;"ALERTA";"").</p>
+  </aside>
+</section>
+
+<!-- 16 · ALERTAS DETALLE -->
+<section class="slide" data-title="Paso 5 · Los 4 días">
+  <div class="inner g2 l">
+    <div>
+      <p class="kicker rv"><span class="pill">Paso 5 · B</span> Los días detectados</p>
+      <h2 class="rv" style="--d:1">El radar encontró los dos saltos que vimos al inicio</h2>
+      <div class="card rv" style="--d:2;margin-top:.6rem;padding:8px 10px">
+        <table>
+          <tr><th>Fecha</th><th>MATIC</th><th>L2</th><th>Residuo</th></tr>
+          <tr><td><b>10-abr</b></td><td class="n goodc">+9,29 %</td><td class="n">+0,20 %</td><td class="n"><b>+9,15 %</b></td></tr>
+          <tr><td><b>25-may</b></td><td class="n badc">−9,37 %</td><td class="n">−2,01 %</td><td class="n"><b>−7,91 %</b></td></tr>
+          <tr><td>11-mar</td><td class="n badc">−5,80 %</td><td class="n">+0,88 %</td><td class="n">−6,44 %</td></tr>
+          <tr><td>7-abr</td><td class="n badc">−3,92 %</td><td class="n">+1,59 %</td><td class="n">−5,07 %</td></tr>
+        </table>
+      </div>
+      <p class="rv small muted" style="--d:3;margin-top:.8rem">Los dos extremos ocurrieron con el <b>mayor volumen</b> del periodo (89,3 y 81,9 M USD): señal de que algo propio de MATIC pasó esos días.</p>
+    </div>
+    <div class="rv zoom" style="--d:2">
+      <svg class="chart" id="c-price-al" viewBox="0 0 640 400"></svg>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Estos son los cuatro días en alerta. Los dos más extremos son los que la guía decía que existían:</p>
+    <ul><li>10 de abril: MATIC sube 9,3 % con el mercado casi plano. En el precio es un salto de 0,739 a 0,811 dólares que rompe la tendencia bajista.</li>
+    <li>25 de mayo: MATIC cae 9,4 % cuando el mercado solo cayó 2 %. Es una caída en escalón de 0,854 a 0,778 dólares que borra la subida de mayo.</li></ul>
+    <p>Los otros dos son días en que MATIC cayó mientras el mercado subía. Si incluyo alpha en el residuo salen las mismas 4 alertas.</p>
+  </aside>
+</section>
+
+<!-- 17 · BONUS -->
+<section class="slide" data-title="Bonus · Bitcoin">
+  <div class="inner g2">
+    <div>
+      <p class="kicker rv"><span class="pill">Bonus</span> Segundo factor</p>
+      <h2 class="rv" style="--d:1">¿Agregar Bitcoin mejora el modelo?</h2>
+      <p class="rv" style="--d:2">Probé <code>ret_matic = alpha + b1·L2 + b2·BTC</code>. Mejora <b>un poquito</b>, pero aparece un problema.</p>
+      <div class="card rv" style="--d:4;margin-top:1.1rem;border-color:#F3CFCB;background:#FFF8F7">
+        <span class="tag bad">Multicolinealidad</span>
+        <p class="small" style="margin-top:.6rem">L2 y BTC se parecen mucho (<b>correlación 0,72</b>). El modelo no sabe a cuál darle el mérito: el coeficiente de BTC sale <b>negativo (−0,37)</b> aunque MATIC y BTC se mueven en la misma dirección.</p>
+        <p class="small" style="margin-top:.5rem"><b>Decisión:</b> para comunicar el resultado uso el modelo simple (solo L2).</p>
+      </div>
+    </div>
+    <div class="card rv" style="--d:2">
+      <table>
+        <tr><th>Modelo</th><th>R² ajustado</th><th>Error prueba</th></tr>
+        <tr><td>Solo L2</td><td class="n">0,207</td><td class="n">0,0168</td></tr>
+        <tr><td>L2 + BTC</td><td class="n"><b>0,221</b></td><td class="n"><b>0,0160</b></td></tr>
+      </table>
+      <svg class="chart" id="c-bonus" viewBox="0 0 480 220" style="margin-top:1rem"></svg>
+      <p class="small muted" style="text-align:center">Coeficientes del modelo con BTC</p>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>En el bonus agregué Bitcoin. El R² ajustado (que penaliza agregar variables) sube de 0,207 a 0,221 y el error de prueba baja de 0,0168 a 0,0160. Mejora, pero poco.</p>
+    <p>El problema: el índice L2 y Bitcoin tienen correlación 0,72, se mueven casi igual. Eso se llama multicolinealidad. Los coeficientes se vuelven inestables: el de BTC sale negativo (−0,37 con 120 días, −0,29 con 90), lo cual no tiene sentido económico. El VIF es 2,06.</p>
+    <p>Por eso para explicar el resultado me quedo con el modelo simple. En Excel se hace con ESTIMACION.LINEAL.</p>
+  </aside>
+</section>
+
+<!-- 18 · LIMITACIONES -->
+<section class="slide" data-title="Limitaciones">
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">07</span> Lo que este análisis no puede decir</p>
+    <h2 class="rv wide" style="--d:1">Limitaciones</h2>
+    <div class="card rv" style="--d:2;margin-top:1rem;border-color:var(--acc);background:var(--acc-soft)">
+      <span class="tag acc">La principal</span>
+      <p style="margin-top:.6rem"><b>La prueba tiene solo 30 días.</b> Un par de días distintos podría convertir la mejora en pérdida, y así pasa en 1 de cada 5 remuestreos.</p>
+    </div>
+    <div class="g3" style="margin-top:1rem">
+      <div class="card rv" style="--d:3"><h3>R² bajo</h3><p class="small muted">El 79 % del movimiento de MATIC queda sin explicar.</p></div>
+      <div class="card rv" style="--d:4"><h3>Beta incierta</h3><p class="small muted">Podría estar entre 0,47 y 0,98.</p></div>
+      <div class="card rv" style="--d:5"><h3>Extrapolación</h3><p class="small muted">El escenario de −10 % está fuera de todo lo observado.</p></div>
+      <div class="card rv" style="--d:6"><h3>Mismo día</h3><p class="small muted">Usa el mercado del mismo día: explica, pero no anticipa.</p></div>
+      <div class="card rv" style="--d:7"><h3>Relación cambiante</h3><p class="small muted">La beta pasó de 0,795 (90 días) a 0,725 (120 días).</p></div>
+      <div class="card rv" style="--d:8"><h3>Datos sintéticos</h3><p class="small muted">El dataset fue creado para el reto, no es el mercado real.</p></div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Toda conclusión tiene límites. El principal: la muestra de prueba es pequeña, 30 días, así que el 7,5 % de mejora no es estable.</p>
+    <p>Además: el R² es bajo, la beta tiene un rango amplio, el escenario extrapola, el modelo usa información del mismo día, la beta cambia según el periodo y los datos son sintéticos.</p>
+    <p>Decir esto no debilita el trabajo: lo hace creíble.</p>
+  </aside>
+</section>
+
+<!-- J · VENTAJAS / DESVENTAJAS / RIESGOS -->
+<section class="slide" data-title="Ventajas y riesgos">
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">08</span> Evaluación del modelo</p>
+    <h2 class="rv wide" style="--d:1">Ventajas, desventajas y riesgos</h2>
+    <div class="g3 vdr" style="margin-top:1.2rem;align-items:stretch">
+      <div class="card rv" style="--d:2;border-top:4px solid var(--good)">
+        <span class="tag good">Ventajas</span>
+        <ul class="clean g">
+          <li><b>Simple y explicable:</b> una sola recta y un número (beta) que cualquiera entiende.</li>
+          <li><b>Reproducible:</b> Python y Excel dan el mismo resultado.</li>
+          <li><b>Validado con honestidad:</b> probado con días no vistos y contra un rival.</li>
+          <li><b>Útil como radar:</b> detecta días anómalos de MATIC.</li>
+          <li><b>Barato y rápido:</b> pocos datos y herramientas gratuitas o comunes.</li>
+        </ul>
+      </div>
+      <div class="card rv" style="--d:3;border-top:4px solid var(--warn)">
+        <span class="tag warn">Desventajas</span>
+        <ul class="clean w">
+          <li><b>Explica poco:</b> R² de 0,21; el 79 % queda sin explicar.</li>
+          <li><b>No anticipa:</b> necesita el dato del mercado del mismo día.</li>
+          <li><b>Mejora pequeña:</b> solo 7,5 % sobre “predecir 0”.</li>
+          <li><b>Solo líneas rectas:</b> no capta relaciones más complejas.</li>
+          <li><b>Pocos datos:</b> 120 días, 30 de prueba.</li>
+        </ul>
+      </div>
+      <div class="card rv" style="--d:4;border-top:4px solid var(--bad)">
+        <span class="tag bad">Riesgos</span>
+        <ul class="clean r">
+          <li><b>Exceso de confianza:</b> tomar el 7,5 % como seguro (1 de cada 5 veces pierde).</li>
+          <li><b>Extrapolar:</b> usar el escenario −10 % como si fuera un hecho.</li>
+          <li><b>Usarlo para invertir:</b> no es una herramienta de inversión.</li>
+          <li><b>Relación que cambia:</b> la beta de hoy puede no valer mañana.</li>
+          <li><b>Datos sintéticos:</b> en el mercado real los resultados pueden ser distintos.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>Una evaluación honesta tiene tres partes.</p>
+    <p>Ventajas: el modelo es simple, se explica con una frase, se puede repetir en Python y en Excel con el mismo resultado, se validó correctamente y sirve como radar de días raros.</p>
+    <p>Desventajas: explica solo el 21 % del movimiento, usa información del mismo día y por eso no predice el futuro, la mejora es pequeña y es un modelo lineal con pocos datos.</p>
+    <p>Riesgos, es decir, qué puede salir mal si alguien usa mal el resultado: confiar demasiado en el 7,5 %, tomar el escenario de −10 % como un hecho, usarlo para tomar decisiones de inversión, olvidar que la relación cambia con el tiempo y olvidar que los datos son sintéticos.</p>
+  </aside>
+</section>
+
+<!-- 19 · RESUMEN -->
+<section class="slide" data-title="Resumen">
+  <div class="inner">
+    <p class="kicker rv"><span class="pill">09</span> Conclusión</p>
+    <h2 class="rv wide" style="--d:1">Resumen del reto</h2>
+    <div class="g4" style="margin-top:1.4rem">
+      <div class="card rv" style="--d:2"><span class="tag acc">Mi beta</span><div class="num acc" style="margin-top:.8rem">0,72</div><p class="lbl">Por cada 1 % del mercado L2, MATIC se mueve 0,72 %. Correlación 0,46 · R² 0,21.</p></div>
+      <div class="card rv" style="--d:3"><span class="tag good">Validación</span><div class="num goodc" style="margin-top:.8rem">+7,5 %</div><p class="lbl">Con 90 días de entrenamiento, el error en 30 días nuevos fue 0,0168 vs 0,0182 del rival. Gana, por poco.</p></div>
+      <div class="card rv" style="--d:4"><span class="tag bad">Uso práctico</span><div class="num badc" style="margin-top:.8rem">−7,2 %</div><p class="lbl">Si L2 cae 10 %. Y 4 días en alerta, entre ellos 10-abr y 25-may.</p></div>
+      <div class="card rv" style="--d:5"><span class="tag warn">Limitación</span><div class="num" style="margin-top:.8rem;color:var(--warn)">30 días</div><p class="lbl">Muestra de prueba pequeña: la mejora va de −15 % a +24 %.</p></div>
+    </div>
+    <div class="simple rv" style="--d:6"><p class="t">La respuesta a la pregunta</p><p><b>Sí, MATIC sigue al mercado L2</b>, pero de forma moderada (≈ 0,72 a 1). Esa relación sirve sobre todo para <b>detectar días anómalos</b> y para escenarios orientativos, no para adivinar el precio de mañana.</p></div>
+  </div>
+  <aside class="notes">
+    <p>Resumen con la plantilla de la guía:</p>
+    <ul><li>Mi beta: 0,72 por cada 1 %; correlación 0,46, R² 0,21.</li>
+    <li>Validación: RMSE 0,0168 frente a 0,0182; gana por 7,5 %.</li>
+    <li>Uso: si L2 cae 10 %, MATIC ≈ −7,2 %; 4 alertas, las extremas el 10-abr y el 25-may.</li>
+    <li>Limitación: solo 30 días de prueba.</li></ul>
+    <p>Conclusión: la relación es real pero moderada; lo más útil es el radar de alertas.</p>
+  </aside>
+</section>
+
+<!-- 20 · GLOSARIO -->
+<section class="slide" data-title="Glosario">
+  <div class="inner">
+    <p class="kicker rv">Para repasar</p>
+    <h2 class="rv wide" style="--d:1">Glosario rápido</h2>
+    <div class="g4" style="margin-top:1.2rem">
+      <div class="card rv" style="--d:2"><h3>Retorno</h3><p class="small muted">Cuánto cambió el precio de un día a otro (0.01 = 1 %).</p></div>
+      <div class="card rv" style="--d:2"><h3>Correlación</h3><p class="small muted">De −1 a 1: si dos cosas se mueven juntas.</p></div>
+      <div class="card rv" style="--d:3"><h3>Beta</h3><p class="small muted">Inclinación de la recta: cuánto se mueve MATIC por cada 1 % del mercado.</p></div>
+      <div class="card rv" style="--d:3"><h3>Alpha</h3><p class="small muted">Lo que hace MATIC en promedio cuando el mercado no se mueve.</p></div>
+      <div class="card rv" style="--d:4"><h3>R²</h3><p class="small muted">Qué parte del movimiento explica el modelo (0 a 1).</p></div>
+      <div class="card rv" style="--d:4"><h3>Residuo</h3><p class="small muted">Lo que el modelo no explica: real − estimado.</p></div>
+      <div class="card rv" style="--d:5"><h3>Línea base</h3><p class="small muted">Rival trivial (predecir 0) que el modelo debe superar.</p></div>
+      <div class="card rv" style="--d:5"><h3>RMSE</h3><p class="small muted">Error típico de las predicciones. Menor es mejor.</p></div>
+    </div>
+  </div>
+  <aside class="notes"><p>Dejo el glosario por si alguien quiere repasar algún término durante las preguntas.</p></aside>
+</section>
+
+<!-- 21 · GRACIAS -->
+<section class="slide cover" data-title="Gracias">
+  <svg class="orb" viewBox="0 0 600 600" aria-hidden="true" id="orb2"></svg>
+  <div class="inner">
+    <p class="kicker rv">Radar de Layer 2</p>
+    <h1 class="rv" style="--d:1">Gracias</h1>
+    <p class="lead rv" style="--d:2;margin-top:1rem">¿Preguntas?</p>
+    <div class="meta rv" style="--d:3">
+      <b>Mauricio Miguel Colque Mamani</b>
+      <span>Minería de Datos · Ingeniería de Sistemas · UPFT</span>
+      <span class="small">Notebook, script, Excel y demo web en el repositorio del proyecto</span>
+    </div>
+  </div>
+  <aside class="notes"><p>Gracias. Quedo atento a sus preguntas. Si quieren, puedo abrir el notebook o la demo web para mostrar el cálculo en vivo.</p></aside>
+</section>
+
+</main>
+
+<div class="notes-panel" id="notes"><h4>Notas del expositor</h4><div id="notes-body"></div></div>
+
+<div class="help" id="help"><div class="box">
+  <h3 style="margin-bottom:.8rem">Atajos</h3>
+  <div class="row"><span>Siguiente / anterior</span><span><kbd>→</kbd> <kbd>←</kbd> o <kbd>Espacio</kbd></span></div>
+  <div class="row"><span>Primera / última</span><span><kbd>Inicio</kbd> <kbd>Fin</kbd></span></div>
+  <div class="row"><span>Notas del expositor</span><span><kbd>N</kbd></span></div>
+  <div class="row"><span>Pantalla completa</span><span><kbd>F</kbd></span></div>
+  <div class="row" style="border:0"><span>En celular</span><span>Desliza ← →</span></div>
+  <p class="small muted" style="margin-top:.8rem">Toca fuera para cerrar.</p>
+</div></div>
+
+<nav class="bar-ui" aria-label="Navegación">
+  <button id="prev" aria-label="Anterior">←</button>
+  <span class="cnt" id="cnt">1</span>
+  <button id="next" aria-label="Siguiente">→</button>
+  <div class="prog"><i id="prog"></i></div>
+  <span class="ttl" id="ttl"></span>
+  <button id="bn" title="Notas (N)">Notas</button>
+  <button id="bf" class="hide-s" title="Pantalla completa (F)">⛶</button>
+  <button id="bh" class="hide-s" title="Atajos">?</button>
+</nav>
+
+<script>
+/* ================= DATOS (dataset_reto_l2.csv) ================= */
+const CSV=`2023-03-01,1.0894,-0.0097,0.0,0.0009,66.9
+2023-03-02,1.1102,0.0189,0.0054,-0.0027,80.6
+2023-03-03,1.1032,-0.0063,-0.0049,-0.0041,66.6
+2023-03-04,1.0895,-0.0125,-0.016,-0.0296,64.2
+2023-03-05,1.0751,-0.0133,-0.0082,-0.0162,50.5
+2023-03-06,1.0831,0.0074,-0.0178,-0.0071,65.3
+2023-03-07,1.0831,-0.0,0.0011,-0.0206,44.4
+2023-03-08,1.0574,-0.024,0.0241,0.0229,55.9
+2023-03-09,1.0346,-0.0219,-0.0089,-0.0228,73.4
+2023-03-10,0.9847,-0.0494,-0.0112,0.0009,80.5
+2023-03-11,0.9292,-0.058,0.0088,-0.0032,76.2
+2023-03-12,0.924,-0.0056,0.0064,0.0116,48.0
+2023-03-13,0.95,0.0278,0.0019,0.0024,65.4
+2023-03-14,0.937,-0.0138,-0.0167,-0.0254,58.7
+2023-03-15,0.9144,-0.0244,-0.0005,0.0122,72.4
+2023-03-16,0.9065,-0.0087,0.0125,0.0219,80.7
+2023-03-17,0.9079,0.0015,-0.0242,-0.0152,62.2
+2023-03-18,0.904,-0.0043,-0.0082,-0.0077,55.1
+2023-03-19,0.8785,-0.0286,-0.0342,-0.0221,59.2
+2023-03-20,0.8599,-0.0213,-0.0232,-0.0237,65.9
+2023-03-21,0.8363,-0.0279,-0.0332,-0.0089,67.0
+2023-03-22,0.8464,0.012,-0.0042,-0.008,54.4
+2023-03-23,0.8389,-0.0088,-0.0228,-0.0142,63.6
+2023-03-24,0.8456,0.008,0.0049,-0.005,53.2
+2023-03-25,0.8298,-0.019,0.0028,-0.0046,74.6
+2023-03-26,0.8355,0.0069,-0.0034,-0.0148,70.6
+2023-03-27,0.7926,-0.0527,-0.0453,-0.0146,84.5
+2023-03-28,0.8031,0.0131,-0.0097,-0.0074,60.1
+2023-03-29,0.7819,-0.0267,-0.0009,0.0091,72.1
+2023-03-30,0.7808,-0.0015,0.002,0.0014,59.4
+2023-03-31,0.7622,-0.0241,-0.0275,-0.0235,64.1
+2023-04-01,0.7365,-0.0343,-0.0086,-0.0084,67.6
+2023-04-02,0.7506,0.019,-0.0176,-0.0162,55.3
+2023-04-03,0.763,0.0163,-0.0146,-0.0087,53.3
+2023-04-04,0.7679,0.0065,0.0191,0.0077,68.3
+2023-04-05,0.7699,0.0026,-0.0145,-0.0117,59.2
+2023-04-06,0.775,0.0066,-0.0006,-0.0141,63.7
+2023-04-07,0.7451,-0.0392,0.0159,0.0015,79.8
+2023-04-08,0.7419,-0.0044,-0.0105,0.0102,47.5
+2023-04-09,0.7393,-0.0034,-0.002,-0.0079,54.8
+2023-04-10,0.8112,0.0929,0.002,-0.0093,89.3
+2023-04-11,0.7943,-0.0211,0.0011,0.0041,69.5
+2023-04-12,0.775,-0.0246,-0.0221,0.0008,64.4
+2023-04-13,0.7728,-0.0029,0.0014,-0.0137,69.1
+2023-04-14,0.8076,0.0441,0.0245,0.0126,74.9
+2023-04-15,0.7936,-0.0175,-0.0278,-0.023,55.5
+2023-04-16,0.8036,0.0125,0.0155,-0.0083,56.3
+2023-04-17,0.8296,0.0319,0.0021,0.0086,76.0
+2023-04-18,0.8121,-0.0214,-0.0115,-0.0072,70.1
+2023-04-19,0.8304,0.0223,0.036,0.0223,51.5
+2023-04-20,0.8097,-0.0252,0.0137,0.0007,78.3
+2023-04-21,0.82,0.0125,-0.0216,-0.0084,68.5
+2023-04-22,0.8365,0.0199,0.0013,-0.0046,76.7
+2023-04-23,0.8591,0.0267,0.0104,0.0048,64.9
+2023-04-24,0.8677,0.01,-0.0034,-0.0131,60.6
+2023-04-25,0.8783,0.0122,0.0123,-0.0048,54.6
+2023-04-26,0.8807,0.0028,-0.0012,0.0126,81.1
+2023-04-27,0.8849,0.0047,0.012,0.0021,60.0
+2023-04-28,0.9004,0.0174,0.0259,0.0185,77.9
+2023-04-29,0.8917,-0.0098,-0.0122,-0.0076,57.7
+2023-04-30,0.9215,0.0328,0.0037,-0.0022,71.2
+2023-05-01,0.9247,0.0035,-0.0083,-0.0101,47.7
+2023-05-02,0.925,0.0003,0.0023,0.0077,57.0
+2023-05-03,0.8974,-0.0303,-0.0214,-0.0158,76.9
+2023-05-04,0.8778,-0.0221,-0.0104,-0.0078,56.6
+2023-05-05,0.9033,0.0286,-0.0035,-0.0019,77.1
+2023-05-06,0.9246,0.0234,0.0162,0.0215,69.7
+2023-05-07,0.9418,0.0184,0.0206,0.0192,57.2
+2023-05-08,0.9161,-0.0277,-0.0238,-0.0105,64.3
+2023-05-09,0.8847,-0.0348,-0.0143,-0.0142,66.8
+2023-05-10,0.8919,0.0081,0.0116,-0.0068,62.0
+2023-05-11,0.8799,-0.0135,-0.0359,-0.012,59.8
+2023-05-12,0.8664,-0.0154,-0.0083,0.0047,58.0
+2023-05-13,0.8608,-0.0065,-0.0018,-0.0025,59.5
+2023-05-14,0.8732,0.0143,0.0226,0.019,56.1
+2023-05-15,0.8839,0.0122,0.0124,0.0153,53.4
+2023-05-16,0.8515,-0.0374,-0.0059,0.0048,70.8
+2023-05-17,0.8423,-0.0108,-0.0066,0.0052,70.3
+2023-05-18,0.8245,-0.0214,-0.0045,-0.0073,54.2
+2023-05-19,0.8586,0.0405,0.0274,0.0316,72.2
+2023-05-20,0.8395,-0.0225,-0.0077,-0.0171,61.5
+2023-05-21,0.8449,0.0064,-0.0055,0.0053,54.1
+2023-05-22,0.8753,0.0354,0.0063,0.0087,77.4
+2023-05-23,0.8678,-0.0086,-0.0022,0.0074,58.4
+2023-05-24,0.8544,-0.0155,-0.0036,0.0167,76.7
+2023-05-25,0.778,-0.0937,-0.0201,0.0028,81.9
+2023-05-26,0.7774,-0.0007,-0.0002,-0.0116,63.3
+2023-05-27,0.7566,-0.0272,-0.008,-0.0217,66.3
+2023-05-28,0.7769,0.0266,0.021,0.0208,61.9
+2023-05-29,0.8166,0.0498,0.0118,-0.0031,79.6
+2023-05-30,0.8117,-0.006,-0.0004,-0.0004,60.6
+2023-05-31,0.8163,0.0057,0.012,0.0156,66.5
+2023-06-01,0.7949,-0.0266,-0.0061,-0.0201,67.6
+2023-06-02,0.8126,0.022,0.0189,-0.0097,57.9
+2023-06-03,0.7921,-0.0255,-0.0001,0.0025,66.8
+2023-06-04,0.7813,-0.0137,0.0105,0.0067,64.5
+2023-06-05,0.7855,0.0053,-0.0232,-0.0164,69.3
+2023-06-06,0.7751,-0.0133,0.0062,0.0041,56.7
+2023-06-07,0.7715,-0.0047,-0.0304,-0.0268,61.1
+2023-06-08,0.7706,-0.0012,-0.0366,-0.0371,46.6
+2023-06-09,0.7706,0.0,-0.0055,-0.005,65.2
+2023-06-10,0.7681,-0.0032,-0.0162,-0.0194,52.3
+2023-06-11,0.8003,0.0411,0.003,-0.0147,57.9
+2023-06-12,0.8246,0.0299,0.0404,0.0293,68.5
+2023-06-13,0.8042,-0.0251,-0.015,-0.0096,76.4
+2023-06-14,0.7749,-0.0371,-0.0112,-0.0027,58.9
+2023-06-15,0.7776,0.0035,0.0037,-0.0077,52.3
+2023-06-16,0.8066,0.0366,0.0089,-0.0013,65.0
+2023-06-17,0.8196,0.016,-0.0032,-0.0119,55.8
+2023-06-18,0.8014,-0.0225,-0.0037,-0.0111,69.8
+2023-06-19,0.7959,-0.0069,0.0126,0.0095,55.6
+2023-06-20,0.7938,-0.0026,0.0094,-0.0022,55.0
+2023-06-21,0.7855,-0.0105,-0.0186,-0.0076,67.8
+2023-06-22,0.781,-0.0058,-0.0014,0.0025,55.7
+2023-06-23,0.7844,0.0043,0.0006,0.0206,64.8
+2023-06-24,0.776,-0.0107,-0.019,-0.0253,55.4
+2023-06-25,0.7741,-0.0025,0.0047,0.0117,51.1
+2023-06-26,0.763,-0.0144,-0.0154,-0.0102,49.6
+2023-06-27,0.7773,0.0185,0.0175,0.0104,80.4
+2023-06-28,0.7779,0.0008,0.0035,-0.0124,57.7`;
+const D=CSV.trim().split('\n').map(r=>{const c=r.split(',');return{f:c[0],p:+c[1],m:+c[2],l:+c[3],b:+c[4],v:+c[5]}});
+const N=D.length, X=D.map(d=>d.l), Y=D.map(d=>d.m), P=D.map(d=>d.p);
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+function fit(x,y){const mx=mean(x),my=mean(y);let sxy=0,sxx=0;for(let i=0;i<x.length;i++){sxy+=(x[i]-mx)*(y[i]-my);sxx+=(x[i]-mx)**2}const b=sxy/sxx;return{b,a:my-b*mx}}
+const F=fit(X,Y), FT=fit(X.slice(0,90),Y.slice(0,90));
+const RES=D.map(d=>d.m-F.b*d.l);
+const SIG=Math.sqrt(RES.reduce((s,v)=>s+(v-mean(RES))**2,0)/(N-1));
+const ALERT=RES.map((r,i)=>Math.abs(r)>2*SIG?i:-1).filter(i=>i>=0);
+const MES=['ene','feb','mar','abr','may','jun','jul'];
+const fmtD=s=>{const[y,m,d]=s.split('-');return +d+'-'+MES[+m-1]};
+const pct=(v,d=1)=>(v*100).toLocaleString('es-BO',{minimumFractionDigits:d,maximumFractionDigits:d})+' %';
+const num=(v,d=2)=>v.toLocaleString('es-BO',{minimumFractionDigits:d,maximumFractionDigits:d});
+
+/* ================= MINI-LIBRERÍA SVG ================= */
+const NS='http://www.w3.org/2000/svg';
+function E(tag,at,par){const e=document.createElementNS(NS,tag);for(const k in at)e.setAttribute(k,at[k]);if(par)par.appendChild(e);return e}
+function T(par,x,y,txt,at={}){const t=E('text',Object.assign({x,y},at),par);t.textContent=txt;return t}
+const S=(d0,d1,r0,r1)=>v=>r0+(v-d0)/(d1-d0)*(r1-r0);
+function setup(id,m){const svg=document.getElementById(id);svg.innerHTML='';const vb=svg.viewBox.baseVal;const W=vb.width,H=vb.height;m=Object.assign({t:28,r:16,b:40,l:54},m||{});return{svg,W,H,m,x0:m.l,x1:W-m.r,y0:H-m.b,y1:m.t}}
+function drawLine(par,pts,at,dur=1600,delay=200){const d='M'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L');const p=E('path',Object.assign({d,fill:'none','stroke-linejoin':'round','stroke-linecap':'round'},at),par);const L=p.getTotalLength();p.style.strokeDasharray=L;p.style.strokeDashoffset=L;p.getBoundingClientRect();p.style.transition=`stroke-dashoffset ${dur}ms cubic-bezier(.2,.7,.1,1) ${delay}ms`;requestAnimationFrame(()=>requestAnimationFrame(()=>p.style.strokeDashoffset=0));return p}
+function yAxis(c,sy,ticks,fmt,label){ticks.forEach(v=>{E('line',{x1:c.x0,x2:c.x1,y1:sy(v),y2:sy(v),class:v===0?'zero':'grid'},c.svg);T(c.svg,c.x0-8,sy(v)+4,fmt(v),{'text-anchor':'end'})});if(label)T(c.svg,c.x0-c.m.l+4,c.y1-12,label,{class:'ttl'})}
+function xDates(c,sx,idxs){const months=[];D.forEach((d,i)=>{if(idxs.includes(i)&&d.f.endsWith('-01'))months.push(i)});months.forEach(i=>{E('line',{x1:sx(i),x2:sx(i),y1:c.y0,y2:c.y0+5,class:'ax'},c.svg);T(c.svg,sx(i),c.y0+20,fmtD(D[i].f).replace('1-','1 '),{'text-anchor':'middle'})});E('line',{x1:c.x0,x2:c.x1,y1:c.y0,y2:c.y0,class:'ax'},c.svg)}
+
+/* ================= GRÁFICOS ================= */
+const CH={};
+CH.orb=(id)=>{const svg=document.getElementById(id);if(!svg)return;svg.innerHTML='';
+  const cx=300,cy=300;[230,170,110].forEach((r,i)=>{const c=E('circle',{cx,cy,r,fill:'none',stroke:i?'#E3DCF7':'#ECE7FA','stroke-width':1},svg);c.classList.add('fadein');c.style.animationDelay=(i*200)+'ms'});
+  const sx=S(-0.06,0.1,90,510),sy=S(-0.1,0.1,510,90);
+  D.forEach((d,i)=>{const c=E('circle',{cx:sx(d.l*1.4+0.02),cy:sy(d.m),r:3.2,fill:ALERT.includes(i)?'var(--bad)':'var(--acc)','fill-opacity':ALERT.includes(i)?1:.55},svg);c.classList.add('dot');c.style.animationDelay=(300+i*9)+'ms'});
+  drawLine(svg,[[sx(-0.06),sy(F.a+F.b*-0.06/1.4)],[sx(0.1),sy(F.a+F.b*0.08/1.4)]],{stroke:'var(--acc)','stroke-width':2.5},1400,1300)};
+CH['c-intro']=()=>{const c=setup('c-intro',{l:48,b:34});const n=30,sx=S(0,n-1,c.x0+8,c.x1-8),sy=S(-0.065,0.035,c.y0,c.y1);
+  yAxis(c,sy,[-0.06,-0.04,-0.02,0,0.02],v=>pct(v,0),'Retorno diario');
+  const bw=(c.x1-c.x0)/n*0.36;
+  for(let i=0;i<n;i++){[[X[i],'var(--l2)',-bw*0.55],[Y[i],'var(--acc)',bw*0.55]].forEach(([v,col,off],k)=>{const y=sy(Math.max(v,0)),h=Math.abs(sy(v)-sy(0));const r=E('rect',{x:sx(i)+off-bw/2,y:y,width:bw,height:Math.max(h,.8),rx:1.5,fill:col},c.svg);r.style.transformOrigin=`center ${sy(0)}px`;r.style.transformBox='view-box';r.style.transform='scaleY(0)';r.style.transition=`transform .7s cubic-bezier(.2,.7,.1,1) ${200+i*35+k*15}ms`;requestAnimationFrame(()=>requestAnimationFrame(()=>r.style.transform='scaleY(1)'))})}
+  T(c.svg,c.x0,c.y0+22,'1-mar-2023',{});T(c.svg,c.x1,c.y0+22,'30-mar-2023',{'text-anchor':'end'})};
+CH['c-price']=()=>{const c=setup('c-price');const sx=S(0,N-1,c.x0,c.x1),sy=S(0.7,1.15,c.y0,c.y1);
+  yAxis(c,sy,[0.7,0.8,0.9,1.0,1.1],v=>num(v,2),'Precio de MATIC (USD)');xDates(c,sx,D.map((_,i)=>i));
+  const pts=P.map((p,i)=>[sx(i),sy(p)]);
+  const area=E('path',{d:'M'+pts.map(p=>p.join(',')).join('L')+`L${c.x1},${c.y0}L${c.x0},${c.y0}Z`,fill:'var(--acc)','fill-opacity':.07},c.svg);area.classList.add('fadein');area.style.animationDelay='1.2s';
+  drawLine(c.svg,pts,{stroke:'var(--acc)','stroke-width':2.4},1800);
+  [[40,'+9,3 % · 10-abr','var(--good)',-1],[85,'−9,4 % · 25-may','var(--bad)',1],[31,'mínimo 0,7365','var(--muted)',1]].forEach(([i,t,col,dir],k)=>{const g=E('g',{},c.svg);g.classList.add('fadein');g.style.animationDelay=(1700+k*250)+'ms';E('circle',{cx:sx(i),cy:sy(P[i]),r:5,fill:'#fff',stroke:col,'stroke-width':2.2},g);T(g,sx(i),sy(P[i])+(dir>0?22:-12),t,{'text-anchor':'middle',style:`fill:${col};font-weight:600`})})};
+function scatterBase(id,withLine){const c=setup(id,{l:56,b:46});const sx=S(-0.05,0.045,c.x0,c.x1),sy=S(-0.1,0.1,c.y0,c.y1);
+  yAxis(c,sy,[-0.1,-0.05,0,0.05,0.1],v=>pct(v,0),'Retorno de MATIC');
+  [-0.04,-0.02,0,0.02,0.04].forEach(v=>{E('line',{x1:sx(v),x2:sx(v),y1:c.y0,y2:c.y1,class:v===0?'zero':'grid'},c.svg);T(c.svg,sx(v),c.y0+18,pct(v,0),{'text-anchor':'middle'})});
+  T(c.svg,c.x1,c.y0+38,'Retorno del mercado L2 →',{'text-anchor':'end',class:'ttl'});
+  D.forEach((d,i)=>{const e=E('circle',{cx:sx(d.l),cy:sy(d.m),r:4.2,fill:'var(--acc)','fill-opacity':.5,stroke:'var(--acc)','stroke-opacity':.8,'stroke-width':.8},c.svg);e.classList.add('dot');e.style.animationDelay=(150+i*8)+'ms'});
+  if(withLine){drawLine(c.svg,[[sx(-0.05),sy(F.a+F.b*-0.05)],[sx(0.045),sy(F.a+F.b*0.045)]],{stroke:'var(--bad)','stroke-width':3},1100,1300);
+    const g=E('g',{},c.svg);g.classList.add('fadein');g.style.animationDelay='2.2s';
+    const x1=0.02,x2=0.04;E('path',{d:`M${sx(x1)},${sy(F.a+F.b*x1)}H${sx(x2)}V${sy(F.a+F.b*x2)}`,fill:'none',stroke:'var(--ink)','stroke-width':1.2,'stroke-dasharray':'3 3'},g);
+    T(g,(sx(x1)+sx(x2))/2,sy(F.a+F.b*x1)+16,'+2 %',{'text-anchor':'middle',style:'fill:var(--ink);font-weight:600'});
+    T(g,sx(x2)+6,(sy(F.a+F.b*x1)+sy(F.a+F.b*x2))/2+4,'+1,45 %',{style:'fill:var(--ink);font-weight:600'});}
+}
+CH['c-scatter']=()=>{scatterBase('c-scatter',false);document.getElementById('corr-mk').style.left='50%';setTimeout(()=>document.getElementById('corr-mk').style.left=((0.4624+1)/2*100)+'%',50)};
+CH['c-beta']=()=>scatterBase('c-beta',true);
+CH['donut']=()=>{const a=document.getElementById('donut-arc');a.style.strokeDashoffset=502.65;requestAnimationFrame(()=>requestAnimationFrame(()=>a.style.strokeDashoffset=502.65*(1-0.2138)));countUp(document.getElementById('donut-t'),21,0,' %',1600,400)};
+function rangeDiagram(id,{min,max,lo,hi,pt,ticks,fmt,ptLabel,loLabel,hiLabel,zero}){const box=document.getElementById(id);const pos=v=>((v-min)/(max-min)*100)+'%';
+  box.innerHTML=`<div class="axis"></div>`+(zero!==undefined?`<div style="position:absolute;left:${pos(zero)};top:34px;height:52px;border-left:1.5px dashed #B9B8B2"></div><div style="position:absolute;left:${pos(zero)};top:92px;transform:translateX(-50%);font-size:.72rem;color:var(--muted);white-space:nowrap">${zero===0?'0 % = empata con el rival':''}</div>`:'')+
+  `<div class="ci" style="position:absolute;left:${pos(lo)};width:0;top:52px;height:16px;border-radius:99px;background:var(--acc-soft);border:1.5px solid var(--acc);transition:width 1.2s cubic-bezier(.2,.7,.1,1) .4s"></div>`+
+  `<div style="position:absolute;left:${pos(lo)};top:22px;transform:translateX(-50%);font-weight:700;font-size:.9rem;white-space:nowrap" class="${lo<0?'badc':''}">${loLabel}</div>`+
+  `<div style="position:absolute;left:${pos(hi)};top:22px;transform:translateX(-50%);font-weight:700;font-size:.9rem;white-space:nowrap" class="${hi>0?'goodc':''}">${hiLabel}</div>`+
+  `<div class="pt" style="position:absolute;left:${pos(pt)};top:60px;width:18px;height:18px;border-radius:50%;background:var(--acc);border:3px solid #fff;box-shadow:0 2px 8px rgba(109,63,224,.45);transform:translate(-50%,-50%) scale(0);transition:transform .5s cubic-bezier(.3,1.6,.5,1) 1.4s"></div>`+
+  `<div style="position:absolute;left:${pos(pt)};top:${zero!==undefined?'108px':'74px'};transform:translateX(-50%);font-size:.78rem;color:var(--acc);font-weight:650;white-space:nowrap">${ptLabel}</div>`;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{box.querySelector('.ci').style.width=`calc(${pos(hi)} - ${pos(lo)})`;box.querySelector('.pt').style.transform='translate(-50%,-50%) scale(1)'}))}
+CH['ci']=()=>rangeDiagram('ci',{min:0.3,max:1.15,lo:0.4715,hi:0.9781,pt:0.7248,loLabel:'0,47',hiLabel:'0,98',ptLabel:'estimado 0,72'});
+CH['boot']=()=>rangeDiagram('boot',{min:-0.25,max:0.32,lo:-0.1531,hi:0.2381,pt:0.0755,loLabel:'−15 %',hiLabel:'+24 %',ptLabel:'medido 7,5 %',zero:0});
+CH['c-valid']=()=>{const c=setup('c-valid');const idx=[...Array(30)].map((_,k)=>90+k);const sx=S(90,119,c.x0+6,c.x1-6),sy=S(-0.045,0.05,c.y0,c.y1);
+  yAxis(c,sy,[-0.04,-0.02,0,0.02,0.04],v=>pct(v,0),'Retorno de MATIC · 30 días de prueba');
+  E('line',{x1:c.x0,x2:c.x1,y1:c.y0,y2:c.y0,class:'ax'},c.svg);[90,100,110,119].forEach(i=>T(c.svg,sx(i),c.y0+20,fmtD(D[i].f),{'text-anchor':'middle'}));
+  E('line',{x1:c.x0,x2:c.x1,y1:sy(0),y2:sy(0),stroke:'#9A9AA4','stroke-width':1.6,'stroke-dasharray':'5 5'},c.svg);
+  drawLine(c.svg,idx.map(i=>[sx(i),sy(Y[i])]),{stroke:'#9A9AA4','stroke-width':1.6},1400);
+  idx.forEach((i,k)=>{const e=E('circle',{cx:sx(i),cy:sy(Y[i]),r:3.4,fill:'#9A9AA4'},c.svg);e.classList.add('dot');e.style.animationDelay=(200+k*40)+'ms'});
+  drawLine(c.svg,idx.map(i=>[sx(i),sy(FT.a+FT.b*X[i])]),{stroke:'var(--acc)','stroke-width':2.6},1400,900)};
+CH['c-scen']=()=>{const c=setup('c-scen',{l:12,r:12,t:20,b:46});const sx=S(-0.11,0.05,c.x0,c.x1);const mid=(c.y0+c.y1)/2+6;
+  const g=E('g',{},c.svg);g.classList.add('fadein');g.style.animationDelay='.2s';
+  E('rect',{x:sx(-0.0453),y:c.y1+6,width:sx(0.0404)-sx(-0.0453),height:c.y0-c.y1-6,rx:10,fill:'var(--l2-soft)'},g);
+  T(g,(sx(-0.0453)+sx(0.0404))/2,c.y1+22,'Lo que sí ocurrió',{'text-anchor':'middle',style:'fill:var(--l2);font-weight:650'});
+  X.forEach((v,i)=>{const l=E('line',{x1:sx(v),x2:sx(v),y1:mid-26,y2:mid+26,stroke:'var(--l2)','stroke-width':1.4,'stroke-opacity':.55},c.svg);l.classList.add('fadein');l.style.animationDelay=(300+i*8)+'ms'});
+  E('line',{x1:c.x0,x2:c.x1,y1:c.y0,y2:c.y0,class:'ax'},c.svg);
+  [-0.1,-0.05,0,0.05].forEach(v=>T(c.svg,sx(v),c.y0+18,pct(v,0),{'text-anchor':'middle'}));
+  T(c.svg,sx(-0.0453),c.y0+34,'−4,53 %',{'text-anchor':'middle',style:'fill:var(--l2);font-weight:600'});T(c.svg,sx(0.0404),c.y0+34,'+4,04 %',{'text-anchor':'middle',style:'fill:var(--l2);font-weight:600'});
+  const s=E('g',{},c.svg);s.classList.add('fadein');s.style.animationDelay='1.6s';
+  E('line',{x1:sx(-0.1),x2:sx(-0.1),y1:mid-44,y2:mid+30,stroke:'var(--bad)','stroke-width':3,'stroke-linecap':'round'},s);
+  E('circle',{cx:sx(-0.1),cy:mid-50,r:7,fill:'var(--bad)'},s).classList.add('pulse');
+  T(s,sx(-0.1)+12,mid-46,'Escenario −10 %',{style:'fill:var(--bad);font-weight:700'});
+  E('path',{d:`M${sx(-0.1)+6},${mid+12}H${sx(-0.0453)-6}`,stroke:'var(--bad)','stroke-width':1.3,'stroke-dasharray':'4 4',fill:'none'},s);
+  T(s,(sx(-0.1)+sx(-0.0453))/2,mid+28,'2,2× la peor caída',{'text-anchor':'middle',style:'fill:var(--bad);font-size:11px'})};
+CH['c-resid']=()=>{const c=setup('c-resid');const sx=S(0,N-1,c.x0,c.x1),sy=S(-0.1,0.1,c.y0,c.y1);
+  yAxis(c,sy,[-0.1,-0.05,0,0.05,0.1],v=>pct(v,0),'Residuo (lo que L2 no explica)');xDates(c,sx,D.map((_,i)=>i));
+  const band=E('rect',{x:c.x0,y:sy(2*SIG),width:c.x1-c.x0,height:sy(-2*SIG)-sy(2*SIG),fill:'var(--good)','fill-opacity':.06},c.svg);band.classList.add('fadein');
+  [2*SIG,-2*SIG].forEach(v=>{const l=E('line',{x1:c.x0,x2:c.x1,y1:sy(v),y2:sy(v),stroke:'var(--bad)','stroke-width':1.4,'stroke-dasharray':'6 5'},c.svg);l.classList.add('fadein');l.style.animationDelay='.3s'});
+  T(c.svg,c.x1,sy(2*SIG)-6,'+2σ = +4,33 %',{'text-anchor':'end',style:'fill:var(--bad);font-weight:600'});T(c.svg,c.x1,sy(-2*SIG)+16,'−2σ = −4,33 %',{'text-anchor':'end',style:'fill:var(--bad);font-weight:600'});
+  drawLine(c.svg,RES.map((r,i)=>[sx(i),sy(r)]),{stroke:'var(--acc)','stroke-width':1.4,'stroke-opacity':.85},1800);
+  ALERT.forEach((i,k)=>{const g=E('g',{},c.svg);g.classList.add('fadein');g.style.animationDelay=(1700+k*220)+'ms';E('circle',{cx:sx(i),cy:sy(RES[i]),r:9,fill:'var(--bad)','fill-opacity':.15},g);E('circle',{cx:sx(i),cy:sy(RES[i]),r:4.5,fill:'var(--bad)'},g);T(g,sx(i),sy(RES[i])+(RES[i]>0?-14:22),fmtD(D[i].f),{'text-anchor':'middle',style:'fill:var(--bad);font-weight:650'})})};
+CH['c-price-al']=()=>{const c=setup('c-price-al');const sx=S(0,N-1,c.x0,c.x1),sy=S(0.7,1.15,c.y0,c.y1);
+  yAxis(c,sy,[0.7,0.8,0.9,1.0,1.1],v=>num(v,2),'Precio de MATIC (USD) con alertas');xDates(c,sx,D.map((_,i)=>i));
+  drawLine(c.svg,P.map((p,i)=>[sx(i),sy(p)]),{stroke:'var(--ink)','stroke-width':1.8,'stroke-opacity':.75},1500);
+  ALERT.forEach((i,k)=>{const big=(i===40||i===85);const g=E('g',{},c.svg);g.classList.add('fadein');g.style.animationDelay=(1300+k*220)+'ms';
+    E('line',{x1:sx(i),x2:sx(i),y1:c.y1,y2:c.y0,stroke:'var(--bad)','stroke-opacity':.25,'stroke-width':big?10:6},g);
+    E('circle',{cx:sx(i),cy:sy(P[i]),r:big?6:4.5,fill:'var(--bad)',stroke:'#fff','stroke-width':2},g);
+    if(big)T(g,sx(i),c.y1+12,fmtD(D[i].f),{'text-anchor':'middle',style:'fill:var(--bad);font-weight:700'})})};
+CH['c-bonus']=()=>{const c=setup('c-bonus',{l:20,r:20,t:16,b:30});const items=[['b1 · L2',0.956,'var(--acc)'],['b2 · BTC',-0.374,'var(--bad)']];const sx=S(-0.6,1.1,c.x0,c.x1);
+  E('line',{x1:sx(0),x2:sx(0),y1:c.y1,y2:c.y0,class:'zero'},c.svg);
+  items.forEach(([lab,v,col],k)=>{const y=c.y1+12+k*72;const r=E('rect',{x:v>0?sx(0):sx(v),y,width:Math.abs(sx(v)-sx(0)),height:34,rx:8,fill:col,'fill-opacity':.9},c.svg);
+    r.style.transformBox='fill-box';r.style.transformOrigin=v>0?'left':'right';r.style.transform='scaleX(0)';r.style.transition=`transform 1s cubic-bezier(.2,.7,.1,1) ${400+k*300}ms`;requestAnimationFrame(()=>requestAnimationFrame(()=>r.style.transform='scaleX(1)'));
+    T(c.svg,v>0?sx(v)+8:sx(v)-8,y+22,num(v,2).replace('-','−'),{'text-anchor':v>0?'start':'end',style:`fill:${col};font-weight:700;font-size:14px`});
+    T(c.svg,v>0?sx(0)-8:sx(0)+8,y+22,lab,{'text-anchor':v>0?'end':'start',style:'fill:var(--ink);font-weight:600'})});
+  T(c.svg,sx(-0.35),c.y0+20,'⚠ signo inesperado',{'text-anchor':'middle',style:'fill:var(--bad);font-size:11px;font-weight:600'})};
+
+/* ================= CONTADORES ================= */
+function countUp(el,to,dec,suf,dur=1300,delay=350){const t0=performance.now()+delay;const f=t=>{let k=Math.min(Math.max((t-t0)/dur,0),1);k=1-Math.pow(1-k,3);el.textContent=(to*k).toLocaleString('es-BO',{minimumFractionDigits:dec,maximumFractionDigits:dec}).replace('-','−')+suf;if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
+
+/* ================= NAVEGACIÓN ================= */
+const slides=[...document.querySelectorAll('.slide')];let cur=-1;
+const $=id=>document.getElementById(id);
+function go(i){i=Math.max(0,Math.min(slides.length-1,i));if(i===cur)return;
+  if(cur>=0)slides[cur].classList.remove('active');cur=i;const s=slides[i];s.scrollTop=0;
+  s.querySelectorAll('.rv').forEach(e=>{e.style.transition='none';});s.offsetHeight;s.querySelectorAll('.rv').forEach(e=>e.style.transition='');
+  s.querySelectorAll('.bar').forEach(b=>b.style.width='0');
+  requestAnimationFrame(()=>{s.classList.add('active');
+    s.querySelectorAll('svg[id],div.range[id]').forEach(el=>CH[el.id]&&CH[el.id]());
+    if(s.querySelector('#orb'))CH.orb('orb'); if(s.querySelector('#orb2'))CH.orb('orb2');
+    s.querySelectorAll('[data-count]').forEach(el=>countUp(el,+el.dataset.count,+(el.dataset.dec||0),el.dataset.suf||''));
+    setTimeout(()=>s.querySelectorAll('.bar').forEach(b=>b.style.width=b.dataset.w+'%'),30);
+  });
+  $('cnt').textContent=(i+1)+' / '+slides.length;$('prog').style.width=((i+1)/slides.length*100)+'%';$('ttl').textContent=s.dataset.title||'';
+  const n=s.querySelector('aside.notes');$('notes-body').innerHTML=n?n.innerHTML:'<p>Sin notas.</p>';
+  history.replaceState(null,'','#'+(i+1));
+}
+$('prev').onclick=()=>go(cur-1);$('next').onclick=()=>go(cur+1);
+$('bn').onclick=()=>{$('notes').classList.toggle('open');$('bn').classList.toggle('on')};
+const fs=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()};
+$('bf').onclick=fs;$('bh').onclick=()=>$('help').classList.add('open');$('help').onclick=()=>$('help').classList.remove('open');
+document.addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('input,textarea'))return;const k=e.key;
+  if(['ArrowRight','PageDown',' ','Enter'].includes(k)){e.preventDefault();go(cur+1)}
+  else if(['ArrowLeft','PageUp','Backspace'].includes(k)){e.preventDefault();go(cur-1)}
+  else if(k==='Home')go(0);else if(k==='End')go(slides.length-1);
+  else if(k==='n'||k==='N')$('bn').click();else if(k==='f'||k==='F')fs();else if(k==='?')$('help').classList.toggle('open');else if(k==='Escape')$('help').classList.remove('open')});
+let tx=null,ty=null;document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+document.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3)go(cur+(dx<0?1:-1));tx=null},{passive:true});
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{const s=slides[cur];s.querySelectorAll('svg[id],div.range[id]').forEach(el=>CH[el.id]&&CH[el.id]())},250)});
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const k=slides.findIndex(x=>x.dataset.title===b.dataset.go);if(k>=0)go(k)});
+go((parseInt(location.hash.slice(1))||1)-1);
+</script>
+</body>
+</html>
